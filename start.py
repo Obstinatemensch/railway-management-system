@@ -89,29 +89,43 @@ class RailwayManagementSystemGUI:
         # Clear the main menu frame
         self.main_menu_frame.destroy()
 
-        # Create a frame for trains between stations
-        self.trains_between_stations_frame = Frame(self.master)
-        self.trains_between_stations_frame.pack(pady=50)
-        Label(self.trains_between_stations_frame, text="Trains Between Stations", font=("Helvetica", 20)).pack(side=TOP, pady=20)
+        # Create a frame to hold the input widgets
+        self.input_frame = Frame(self.master)
+        self.input_frame.pack(side=LEFT, padx=10, pady=10)
 
-        # Create a source station label and entry box
-        Label(self.trains_between_stations_frame, text="Source Station", font=("Helvetica", 16)).pack(pady=10)
-        self.source_station_entry = Entry(self.trains_between_stations_frame, font=("Helvetica", 16))
-        self.source_station_entry.pack(pady=10)
+        # Create labels and entry boxes for the source and destination stations
+        self.source_station_label = Label(self.input_frame, text="Source Station:")
+        self.source_station_label.grid(row=0, column=0)
+        self.source_station_entry = Entry(self.input_frame)
+        self.source_station_entry.grid(row=0, column=1)
 
-        # Create a destination station label and entry box
-        Label(self.trains_between_stations_frame, text="Destination Station", font=("Helvetica", 16)).pack(pady=10)
-        self.destination_station_entry = Entry(self.trains_between_stations_frame, font=("Helvetica", 16))
-        self.destination_station_entry.pack(pady=10)
+        self.destination_station_label = Label(self.input_frame, text="Destination Station:")
+        self.destination_station_label.grid(row=1, column=0)
+        self.destination_station_entry = Entry(self.input_frame)
+        self.destination_station_entry.grid(row=1, column=1)
 
-        # Create a day of the week label and dropdown menu
-        Label(self.trains_between_stations_frame, text="Day of Week", font=("Helvetica", 16)).pack(pady=10)
-        self.day_of_week = StringVar(self.trains_between_stations_frame)
-        self.day_of_week.set("Monday")  # default value
-        OptionMenu(self.trains_between_stations_frame, self.day_of_week, "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday").pack(pady=10)
+        # Create a label and dropdown menu for the day of the week
+        self.day_of_week_label = Label(self.input_frame, text="Day of Week:")
+        self.day_of_week_label.grid(row=2, column=0)
+        self.day_of_week = StringVar()
+        self.day_of_week_dropdown = OptionMenu(self.input_frame, self.day_of_week, *["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
+        self.day_of_week_dropdown.grid(row=2, column=1)
 
-        # Create a button to display the trains
-        Button(self.trains_between_stations_frame, text="Display Trains", font=("Helvetica", 16), command=self.display_trains).pack(pady=10)
+        # Create a button to execute the query
+        self.execute_button = Button(self.input_frame, text="Find Trains", command=self.display_trains)
+        self.execute_button.grid(row=3, column=0, columnspan=2, pady=10)
+
+        # Create a frame to hold the output widget
+        self.output_frame = Frame(self.master)
+        self.output_frame.pack(side=RIGHT, padx=10, pady=10)
+
+        # Create a label for the output widget
+        self.train_list_label = Label(self.output_frame, text="Trains Between Stations:")
+        self.train_list_label.pack()
+
+        # Create a Listbox widget for the output
+        self.train_listbox = Listbox(self.output_frame, width=50)
+        self.train_listbox.pack()
 
     # # works well, but o/p in terminal
     # def display_trains(self):
