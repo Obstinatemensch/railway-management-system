@@ -1,17 +1,10 @@
 from datetime import time
 from tkinter import *
+from tkinter import ttk
 from tkinter import messagebox
 import sqlalchemy
 from sqlalchemy.engine import create_engine
 from sqlalchemy.sql import text
-
-root = Tk()
-root.title("railway-management-system")
-screen_width = root.winfo_screenwidth()
-screen_height = root.winfo_screenheight()
-scrSizeStr=str(int(screen_width))+'x'+str(int(screen_height))
-root.geometry(scrSizeStr)
-
 
 class PostgresqlDB:
     def __init__(self,user_name,password,host,port,db_name):
@@ -62,12 +55,15 @@ PORT = 5432
 DATABASE_NAME = 'railwaymanagementsys'
 HOST = 'localhost'
 
-db = PostgresqlDB(user_name=USER_NAME,
-                    password=PASSWORD,
-                    host=HOST,port=PORT,
-                    db_name=DATABASE_NAME)
-engine = db.engine
-
+try:
+    db = PostgresqlDB(user_name=USER_NAME,
+                        password=PASSWORD,
+                        host=HOST,port=PORT,
+                        db_name=DATABASE_NAME)
+    engine = db.engine
+    print('Arun')
+except:
+    print('Not working')
 class RailwayManagementSystemGUI:
     def __init__(self, master):
         # Initialize the GUI window
@@ -123,9 +119,17 @@ class RailwayManagementSystemGUI:
         self.train_list_label = Label(self.output_frame, text="Trains Between Stations:")
         self.train_list_label.pack()
 
-        # Create a Listbox widget for the output
-        self.train_listbox = Listbox(self.output_frame, width=50)
-        self.train_listbox.pack()
+        # # Create a Listbox widget for the output
+        # self.train_listbox = Listbox(self.output_frame, width=50)
+        # self.train_listbox.pack()
+        self.train_treeview = ttk.Treeview(self.output_frame, columns=(0, 1, 2, 3, 4, 5), show='headings', height=15)
+        self.train_treeview.pack()
+        self.train_treeview.heading(0, text='Train Number')
+        self.train_treeview.heading(3, text='Days of week')
+        self.train_treeview.heading(1, text='Source Station')
+        self.train_treeview.heading(2, text='Destination Station')
+        self.train_treeview.heading(4, text='Arrival Time')
+        self.train_treeview.heading(5, text='Departure Time')
 
     # # works well, but o/p in terminal
     # def display_trains(self):
@@ -153,17 +157,37 @@ class RailwayManagementSystemGUI:
         day_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].index(self.day_of_week.get())
 
         # Execute the query and display the results
-        query = f"SELECT * FROM TrainsBtwStns('{source_station}', '{destination_station}', {day_of_week});"
-        results = db.execute_dql_commands(query)
-        self.train_listbox.delete(0, END)
-        for row in results:
-            row_list = list(row)
-            for i in range(4, 8):
-                if isinstance(row_list[i], time):
-                    row_list[i] = row_list[i].strftime("%H:%M")
-                elif row_list[i] is None:
-                    row_list[i] = 'N/A'
-            self.train_listbox.insert(END, tuple(row_list))
+        try:
+            query = f"SELECT * FROM TrainsBtwStns('{source_station}', '{destination_station}', {day_of_week});"
+            results = db.execute_dql_commands(query)
+            self.train_treeview.delete(*self.train_treeview.get_children())
+            for row in results:
+                row_list = list(row)
+                for i in range(4, 6):
+                    if isinstance(row_list[i], time):
+                        row_list[i] = row_list[i].strftime("%H:%M")
+                    elif row_list[i] is None:
+                        row_list[i] = 'N/A'
+                #print(type(row_list[3]))
+                # Convert integer to binary and pad to 7 digits
+                binary = bin(row_list[3])[2:].zfill(7)
+
+                # Create a list of days of the week in order
+                days_of_week = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+
+                # Create a list of selected days based on the binary string
+                selected_days = [days_of_week[i] for i in range(7) if binary[i] == '1']
+
+                # Join the selected days into a comma-separated string
+                days_string = ', '.join(selected_days)
+                if binary=='1111111':
+                    days_string='All days'
+                row_list[3]=days_string
+                # Print the string of selected days
+                #print(days_string)
+                self.train_treeview.insert('', END, values=row_list[:6])
+        except:
+            print('NO')
 
 
 
@@ -202,7 +226,12 @@ class RailwayManagementSystemGUI:
         messagebox.showinfo("Success", "Login successful.")
 
 def main():
-    root = Tk()
+    root=Tk()
+    root.title("railway-management-system")
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    scrSizeStr=str(int(screen_width))+'x'+str(int(screen_height))
+    root.geometry(scrSizeStr)
     app = RailwayManagementSystemGUI(root)
     root.mainloop()
 
