@@ -122,14 +122,18 @@ class RailwayManagementSystemGUI:
         # # Create a Listbox widget for the output
         # self.train_listbox = Listbox(self.output_frame, width=50)
         # self.train_listbox.pack()
-        self.train_treeview = ttk.Treeview(self.output_frame, columns=(0, 1, 2, 3, 4, 5), show='headings', height=15)
+        self.train_treeview = ttk.Treeview(self.output_frame, columns=(0, 1, 2, 3, 4, 5,6,7,8), show='headings', height=15)
         self.train_treeview.pack()
         self.train_treeview.heading(0, text='Train Number')
         self.train_treeview.heading(3, text='Days of week')
         self.train_treeview.heading(1, text='Source Station')
         self.train_treeview.heading(2, text='Destination Station')
-        self.train_treeview.heading(4, text='Arrival Time')
-        self.train_treeview.heading(5, text='Departure Time')
+        self.train_treeview.heading(4, text='Source Arrival Time')
+        self.train_treeview.heading(5, text='Source Dept Time')
+        self.train_treeview.heading(6, text='Dest Arrival Time')
+        self.train_treeview.heading(7, text='Dest Dept Time')
+        self.train_treeview.heading(8, text='Day Number')
+
 
     # # works well, but o/p in terminal
     # def display_trains(self):
@@ -154,7 +158,7 @@ class RailwayManagementSystemGUI:
         # Get the values from the entry boxes and dropdown menu
         source_station = self.source_station_entry.get()
         destination_station = self.destination_station_entry.get()
-        day_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].index(self.day_of_week.get())
+        day_of_week = ["Sunday", "Saturday", "Friday","Thursday","Wednesday","Tuesday","Monday"   ].index(self.day_of_week.get())
 
         # Execute the query and display the results
         try:
@@ -163,7 +167,7 @@ class RailwayManagementSystemGUI:
             self.train_treeview.delete(*self.train_treeview.get_children())
             for row in results:
                 row_list = list(row)
-                for i in range(4, 6):
+                for i in range(4, 9):
                     if isinstance(row_list[i], time):
                         row_list[i] = row_list[i].strftime("%H:%M")
                     elif row_list[i] is None:
@@ -185,7 +189,7 @@ class RailwayManagementSystemGUI:
                 row_list[3]=days_string
                 # Print the string of selected days
                 #print(days_string)
-                self.train_treeview.insert('', END, values=row_list[:6])
+                self.train_treeview.insert('', END, values=row_list)
         except:
             print('NO')
 
