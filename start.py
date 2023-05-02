@@ -3,6 +3,7 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
 import sqlalchemy
+import datetime
 from sqlalchemy.engine import create_engine
 from sqlalchemy.sql import text
 
@@ -81,6 +82,9 @@ class RailwayManagementSystemGUI:
         # Button to login page
         Button(self.main_menu_frame, text="Login", font=("Helvetica", 16), command=self.login_page).pack(pady=10)
 
+        #Button to add a reservation page
+        Button(self.main_menu_frame, text="Reserve Seat", font=("Helvetica", 16), command=self.reserve_tickets_page).pack(pady=10)
+        
     def trains_between_stations(self):
         # Clear the main menu frame
         self.main_menu_frame.destroy()
@@ -194,9 +198,6 @@ class RailwayManagementSystemGUI:
             print('NO')
 
 
-
-
-
     def login_page(self):
         # Clear the main menu frame
         self.main_menu_frame.destroy()
@@ -228,6 +229,102 @@ class RailwayManagementSystemGUI:
 
         # Show a message box to indicate successful login
         messagebox.showinfo("Success", "Login successful.")
+        
+    def reserve_tickets_page(self):
+
+        # Clear the main menu frame
+        self.main_menu_frame.destroy()
+
+        # Create a frame to hold the input widgets
+        self.input_frame = Frame(self.master)
+        self.input_frame.pack(side=LEFT, padx=10, pady=10)
+
+        # Create labels and entry boxes for all the required information
+        self.tno_label = Label(self.input_frame, text="Train Number:")
+        self.tno_label.grid(row=0, column=0)
+        self.tno_entry = Entry(self.input_frame)
+        self.tno_entry.grid(row=0, column=1)
+
+        self.src_label = Label(self.input_frame, text="Source Station Code:")
+        self.src_label.grid(row=1, column=0)
+        self.src_entry = Entry(self.input_frame)
+        self.src_entry.grid(row=1, column=1)
+
+        self.dst_label = Label(self.input_frame, text="Destination Station Code:")
+        self.dst_label.grid(row=2, column=0)
+        self.dst_entry = Entry(self.input_frame)
+        self.dst_entry.grid(row=2, column=1)
+        
+        self.doj_label= Label(self.input_frame, text="Date of journey (DD-MM-YYYY):")
+        self.doj_label.grid(row=3, column=0)
+        self.doj_entry = Entry(self.input_frame)
+        self.doj_entry.grid(row=3, column=1)
+        
+        self.ctyp_label= Label(self.input_frame, text="Coach Type (CC/1AC/2AC/3AC):")
+        self.ctyp_label.grid(row=4, column=0)
+        self.ctyp_entry = Entry(self.input_frame)
+        self.ctyp_entry.grid(row=4, column=1)
+        
+        self.uid_label= Label(self.input_frame, text="User ID:")
+        self.uid_label.grid(row=5, column=0)
+        self.uid_entry = Entry(self.input_frame)
+        self.uid_entry.grid(row=5, column=1)
+        
+        self.txn_label= Label(self.input_frame, text="Transcation ID:")
+        self.txn_label.grid(row=6, column=0)
+        self.txn_entry = Entry(self.input_frame)
+        self.txn_entry.grid(row=6, column=1)
+        
+        self.pass_label= Label(self.input_frame, text="Passenger IDs (comma-separated):")
+        self.pass_label.grid(row=7, column=0)
+        self.pass_entry = Entry(self.input_frame)
+        self.pass_entry.grid(row=7, column=1)
+        
+        self.result_label= Label(self.input_frame, text="Reservation Status:")
+        self.result_label.grid(row=8, column=0)
+        self.result_output = Entry(self.input_frame)
+        self.result_output.grid(row=8, column=1)
+        
+        # Create a button to execute the query
+        self.reserve_button = Button(self.input_frame, text="Reserve Seats", command=self.reserve_seat)
+        self.reserve_button.grid(row=9, column=0, columnspan=2, pady=10)
+
+        
+    def reserve_seat(self):
+        tno = self.tno_entry.get()
+        src = self.src_entry.get()
+        dst = self.dst_entry.get()
+        doj = self.doj_entry.get()
+        c_typ = self.ctyp_entry.get()
+        usr_id = self.uid_entry.get()
+        trxn_id = self.txn_entry.get()
+        pass_ids = self.pass_entry.get()
+        # print(tno);
+        # print(src);
+        # print(dst);
+        # print(doj);
+        # print(c_typ);
+        # print(usr_id);
+        # print(trxn_id);
+        # print(pass_ids);
+        
+        if not tno or not src or not dst or not doj or not c_typ or not usr_id or not trxn_id or not pass_ids:
+            messagebox.showerror("Error", "Please enter all required fields")
+            return
+        try:
+            doj = datetime.datetime.strptime(doj, "%d-%m-%Y")
+        except ValueError:
+            messagebox.showerror("Error", "Invalid date format. Please use DD-MM-YYYY")
+            return
+        query = f"CALL reserve_seat('{tno}', '{src}', '{dst}', '{doj}', '{c_typ}', '{usr_id}', '{trxn_id}', '{pass_ids}');"
+        result = db.execute_dql_commands(query)
+        if result:
+            # Show a message box to indicate successful reservation
+            messagebox.showinfo("Success", "Reservation successful.")
+            self.result_output.config(text="Reservation successful. PNR number: " + str(result))
+        else:
+            self.result_output.config(text="Reservation failed.")
+
 
 def main():
     root=Tk()
