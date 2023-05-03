@@ -3,7 +3,9 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
 import sqlalchemy
+from datetime import datetime
 import datetime
+import calendar
 from sqlalchemy.engine import create_engine
 from sqlalchemy.sql import text
 
@@ -123,11 +125,10 @@ class RailwayManagementSystemGUI:
         self.destination_station_entry.grid(row=1, column=1)
 
         # Create a label and dropdown menu for the day of the week
-        self.day_of_week_label = Label(self.input_frame, text="Day of Week:")
+        self.day_of_week_label = Label(self.input_frame, text="Date:")
         self.day_of_week_label.grid(row=2, column=0)
-        self.day_of_week = StringVar()
-        self.day_of_week_dropdown = OptionMenu(self.input_frame, self.day_of_week, *["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
-        self.day_of_week_dropdown.grid(row=2, column=1)
+        self.day_of_week_entry = Entry(self.input_frame)
+        self.day_of_week_entry.grid(row=2, column=1)
 
         # Create a button to execute the query
         self.execute_button = Button(self.input_frame, text="Find Trains", command=self.display_trains)
@@ -165,25 +166,21 @@ class RailwayManagementSystemGUI:
                 source_station = self.source_station_entry.get()
                 dest_station = self.destination_station_entry.get()
 
-                # Create a new window for entering the date and coach type
+                # Create a new window for entering the coach type
                 popup_window = Toplevel(self.master)
-                popup_window.title("Enter Date and Coach Type")
+                popup_window.title("Enter Coach Type")
                 popup_window.geometry("300x150")
 
-                # Create label and entry box for the date
-                date_label = Label(popup_window, text="Enter date (DD-MM-YYYY):")
-                date_label.pack()
-                date_entry = Entry(popup_window)
-                date_entry.pack()
-
-                # Create label and entry box for the coach type
-                coach_label = Label(popup_window, text="Enter coach type:")
+                # Create label and dropdown menu for the coach type
+                coach_label = Label(popup_window, text="Select coach type:")
                 coach_label.pack()
-                coach_entry = Entry(popup_window)
-                coach_entry.pack()
+                coach_var = StringVar(popup_window)
+                coach_var.set('CC')  # Set the default value to 'CC'
+                coach_menu = OptionMenu(popup_window, coach_var, 'CC', '3AC')
+                coach_menu.pack()
 
                 # Create a button to execute the query
-                button = Button(popup_window, text="Check Availability", command=lambda: execute_query(train_num, source_station, dest_station, date_entry.get(), coach_entry.get(), popup_window))
+                button = Button(popup_window, text="Check Availability", command=lambda: execute_query(train_num, source_station, dest_station, self.day_of_week_entry.get(), coach_var.get(), popup_window))
                 button.pack()
 
         def execute_query(train_num, source_station, dest_station, date, coach_type, popup_window):
@@ -220,7 +217,17 @@ class RailwayManagementSystemGUI:
         # Get the values from the entry boxes and dropdown menu
         source_station = self.source_station_entry.get()
         destination_station = self.destination_station_entry.get()
-        day_of_week = ["Sunday", "Saturday", "Friday","Thursday","Wednesday","Tuesday","Monday"   ].index(self.day_of_week.get())
+        # print(self.day_of_week.get())
+        date_string=self.day_of_week_entry.get()
+        # print(date_string)
+
+        # Extract the day of the week from the datetime object using strftime
+        day, month, year = map(int, date_string.split('-'))
+
+        day_week = calendar.day_name[calendar.weekday(year, month, day)]
+
+        # print(day_week)  # Output: Wednesday
+        day_of_week = ["Sunday", "Saturday", "Friday","Thursday","Wednesday","Tuesday","Monday"   ].index(day_week)
 
         # Execute the query and display the results
         try:
@@ -253,7 +260,7 @@ class RailwayManagementSystemGUI:
                 #print(days_string)
                 self.train_treeview.insert('', END, values=row_list)
         except:
-            print('NO')
+            print('NOT WORKING')
 
 
     def login_page(self):
