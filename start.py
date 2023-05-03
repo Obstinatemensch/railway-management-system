@@ -70,7 +70,8 @@ class RailwayManagementSystemGUI:
         # Initialize the GUI window
         self.master = master
         self.master.title("Railway Management System")
-        
+        self.isLoggedIn = False
+        self.userId = None
         self.main_page()
     
     def main_page(self):
@@ -81,19 +82,26 @@ class RailwayManagementSystemGUI:
         Label(self.main_menu_frame, text="Welcome to Railway Management System", font=("Helvetica", 20)).pack(side=TOP, pady=20)
 
         # Button to login page
-        Button(self.main_menu_frame, text="Login", font=("Helvetica", 16), command=self.login_page).pack(pady=10)
+        btn_login = Button(self.main_menu_frame, text="Login", font=("Helvetica", 16), command=self.login_page)
+        btn_login.pack(pady=10)
 
         #Button to add a reservation page
-        Button(self.main_menu_frame, text="Reserve Seat", font=("Helvetica", 16), command=self.reserve_tickets_page).pack(pady=10)
+        btn_reserve = Button(self.main_menu_frame, text="Reserve Seat", font=("Helvetica", 16), command=self.reserve_tickets_page)
+        btn_reserve.pack(pady=10)
         
         # Button to display trains between stations
-        Button(self.main_menu_frame, text="Trains Between Stations", font=("Helvetica", 16), command=self.trains_between_stations).pack(pady=10)
+        btn_tbtwstn = Button(self.main_menu_frame, text="Trains Between Stations", font=("Helvetica", 16), command=self.trains_between_stations)
+        btn_tbtwstn.pack(pady=10)
         
         # Button to display trains between stations
         # Button(self.main_menu_frame, text="Availability", font=("Helvetica", 16), command=self.num_avail).pack(pady=10)
 
         #Button to add a cancellation page
-        Button(self.main_menu_frame, text="Cancel Seat", font=("Helvetica", 16), command=self.cancel_seat_page).pack(pady=10)
+        btn_cancel = Button(self.main_menu_frame, text="Cancel Seat", font=("Helvetica", 16), command=self.cancel_seat_page)
+        btn_cancel.pack(pady=10)
+        if not self.isLoggedIn:
+            btn_reserve.config(state="disabled")
+            btn_cancel.config(state="disabled")
 
     def trains_between_stations(self):
         # Clear the main menu frame
@@ -279,9 +287,20 @@ class RailwayManagementSystemGUI:
         password = self.password_entry.get()
 
         # TODO: Implement login functionality
-
-        # Show a message box to indicate successful login
-        messagebox.showinfo("Success", "Login successful.")
+        query = f"SELECT COUNT(*) FROM new_user WHERE user_id={username} AND password='{password}'"
+        # query = f"SELECT num_available({train_num}, '{source_station}', '{dest_station}', '{date}', '{coach_type}')"
+        results = db.execute_dql_commands(query)
+        x = list(results)
+        value = x[0][0]
+        # print(x)
+        if value==1:
+            self.userId=username
+            self.isLoggedIn=True
+            # Show a message box to indicate successful login
+            messagebox.showinfo("Success", "Login successful.")
+        else:
+            messagebox.showinfo("Failure", "Incorrect credentials!")
+        
         
     def reserve_tickets_page(self):
 
