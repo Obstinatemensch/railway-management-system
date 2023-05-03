@@ -274,17 +274,19 @@ class RailwayManagementSystemGUI:
         self.doj_entry = Entry(self.input_frame)
         self.doj_entry.grid(row=3, column=1)
         
-        self.ctyp_label= Label(self.input_frame, text="Coach Type (CC/1AC/2AC/3AC):")
-        self.ctyp_label.grid(row=4, column=0)
-        self.ctyp_entry = Entry(self.input_frame)
-        self.ctyp_entry.grid(row=4, column=1)
+        # Create a label and dropdown menu for the day of the week
+        self.ctyp_entry_label = Label(self.input_frame, text="Coach Type:")
+        self.ctyp_entry_label.grid(row=4, column=0)
+        self.ctyp_entry = StringVar()
+        self.ctyp_entry_rolldown = OptionMenu(self.input_frame, self.ctyp_entry, *["CC", "3AC"])
+        self.ctyp_entry_rolldown.grid(row=4, column=1)
         
         self.uid_label= Label(self.input_frame, text="User ID:")
         self.uid_label.grid(row=5, column=0)
         self.uid_entry = Entry(self.input_frame)
         self.uid_entry.grid(row=5, column=1)
         
-        self.txn_label= Label(self.input_frame, text="Transcation ID:")
+        self.txn_label= Label(self.input_frame, text="Transaction ID:")
         self.txn_label.grid(row=6, column=0)
         self.txn_entry = Entry(self.input_frame)
         self.txn_entry.grid(row=6, column=1)
