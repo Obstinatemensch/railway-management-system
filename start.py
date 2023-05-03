@@ -317,7 +317,6 @@ class RailwayManagementSystemGUI:
         usr_id = self.uid_entry.get()
         trxn_id = self.txn_entry.get()
         pass_ids = self.pass_entry.get()
-        print(pass_ids[0]);
         
         if not tno or not src or not dst or not doj or not c_typ or not usr_id or not trxn_id or not pass_ids:
             messagebox.showerror("Error", "Please enter all required fields")
