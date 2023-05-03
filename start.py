@@ -8,6 +8,7 @@ import datetime
 import calendar
 from sqlalchemy.engine import create_engine
 from sqlalchemy.sql import text
+import random
 
 class PostgresqlDB:
     def __init__(self,user_name,password,host,port,db_name):
@@ -363,16 +364,6 @@ class RailwayManagementSystemGUI:
         self.ctyp_entry_rolldown = OptionMenu(self.input_frame, self.ctyp_entry, *["CC", "3AC"])
         self.ctyp_entry_rolldown.grid(row=4, column=1)
         
-        self.uid_label= Label(self.input_frame, text="User ID:")
-        self.uid_label.grid(row=5, column=0)
-        self.uid_entry = Entry(self.input_frame)
-        self.uid_entry.grid(row=5, column=1)
-        
-        self.txn_label= Label(self.input_frame, text="Transaction ID:")
-        self.txn_label.grid(row=6, column=0)
-        self.txn_entry = Entry(self.input_frame)
-        self.txn_entry.grid(row=6, column=1)
-        
         self.pass_label= Label(self.input_frame, text="Passenger IDs (comma-separated):")
         self.pass_label.grid(row=7, column=0)
         self.pass_entry = Entry(self.input_frame)
@@ -398,8 +389,8 @@ class RailwayManagementSystemGUI:
         dst = self.dst_entry.get()
         doj = self.doj_entry.get()
         c_typ = self.ctyp_entry.get()
-        usr_id = self.uid_entry.get()
-        trxn_id = self.txn_entry.get()
+        usr_id = self.userId
+        trxn_id = random.randint(100,1000000)
         pass_ids = self.pass_entry.get()
         
         if not tno or not src or not dst or not doj or not c_typ or not usr_id or not trxn_id or not pass_ids:
@@ -413,15 +404,26 @@ class RailwayManagementSystemGUI:
         query1 = f"CALL reserve_seat('{tno}', '{src}', '{dst}', '{doj}', '{c_typ}', {usr_id}, {trxn_id}, '{pass_ids}');"
         values = {"tno": tno, "src": src, "dst": dst, "doj": doj, "c_typ": c_typ, "usr_id": usr_id, "trxn_id": trxn_id, "pass_ids": pass_ids}
         try:
+            prevquery="SELECT booking_id from booking order by booking_date desc limit 1;"
+            prevres=db.execute_dql_commands(prevquery)
+            prevx=list(prevres)
+            prevval=prevx[0][0]
             db.execute_ddl_and_dml_commands(query1, values)
-            messagebox.showinfo("Success", "Reservation successful.")
-            query = "SELECT pnr_no FROM pass_tkt WHERE pass_id = :pass_id;"
-            values = {"pass_id": pass_ids[0]}
-            results = db.execute_dql_commands(query, values)
-            print(results[0])
-            self.result_output.config(text=f"PNR: {results[0][0]}")
+            querynew="SELECT booking_id from booking order by booking_date desc limit 1;"
+            nextres=db.execute_dql_commands(querynew)
+            nextx=list(nextres)
+            nextval=nextx[0][0]
+            if(prevval!=nextval):
+                messagebox.showinfo("Success", "Reservation successful.")
+            else:
+                messagebox.showinfo("Failure", "Reservation unsuccessful. Check availability first")
+            # query = "SELECT pnr_no FROM pass_tkt WHERE pass_id = :pass_id;"
+            # values = {"pass_id": pass_ids[0]}
+            # results = db.execute_dql_commands(query, values)
+            # print(results[0])
+            # self.result_output.config(text=f"PNR: {results[0][0]}")
         except Exception as e:
-            self.result_output.config(text="Reservation failed. Error: " + str(e))
+            self.result_output.config(text="Error: " + str(e))
     
     
     def cancel_seat_page(self):
@@ -437,11 +439,6 @@ class RailwayManagementSystemGUI:
         self.pnr_no_label.grid(row=0, column=0)
         self.pnr_no_entry = Entry(self.input_frame)
         self.pnr_no_entry.grid(row=0, column=1)
-        
-        self.uid_label= Label(self.input_frame, text="User ID:")
-        self.uid_label.grid(row=1, column=0)
-        self.uid_entry = Entry(self.input_frame)
-        self.uid_entry.grid(row=1, column=1)
         
         self.pass_label= Label(self.input_frame, text="Passenger IDs (comma-separated):")
         self.pass_label.grid(row=2, column=0)
@@ -464,7 +461,7 @@ class RailwayManagementSystemGUI:
         
     def cancel_seat(self):
         pnr_no = self.pnr_no_entry.get()
-        usr_id = self.uid_entry.get()
+        usr_id = self.userId
         pass_ids = self.pass_entry.get()
         
         if not pnr_no or not usr_id or not pass_ids:
