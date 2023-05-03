@@ -73,6 +73,8 @@ class RailwayManagementSystemGUI:
         # Initialize the GUI window
         self.master = master
         self.master.title("Railway Management System")
+        # self.isLoggedIn = True
+        # self.userId = 66637
         self.isLoggedIn = False
         self.userId = None
         self.main_page()
@@ -400,27 +402,33 @@ class RailwayManagementSystemGUI:
             return
         query1 = f"CALL reserve_seat('{tno}', '{src}', '{dst}', '{doj}', '{c_typ}', {usr_id}, {trxn_id}, '{pass_ids}');"
         values = {"tno": tno, "src": src, "dst": dst, "doj": doj, "c_typ": c_typ, "usr_id": usr_id, "trxn_id": trxn_id, "pass_ids": pass_ids}
+        # try:
+        prevquery="SELECT booking_id from booking order by booking_date desc limit 1;"
+        prevres=db.execute_dql_commands(prevquery)
+        prevx=list(prevres)
+        prevval=None
         try:
-            prevquery="SELECT booking_id from booking order by booking_date desc limit 1;"
-            prevres=db.execute_dql_commands(prevquery)
-            prevx=list(prevres)
             prevval=prevx[0][0]
-            db.execute_ddl_and_dml_commands(query1, values)
-            querynew="SELECT booking_id from booking order by booking_date desc limit 1;"
-            nextres=db.execute_dql_commands(querynew)
-            nextx=list(nextres)
-            nextval=nextx[0][0]
-            if(prevval!=nextval):
-                messagebox.showinfo("Success", "Reservation successful.")
-            else:
-                messagebox.showinfo("Failure", "Reservation unsuccessful. Check availability first")
+        except:
+            pass
+        db.execute_ddl_and_dml_commands(query1, values)
+        querynew="SELECT booking_id from booking order by booking_date desc limit 1;"
+        nextres=db.execute_dql_commands(querynew)
+        nextx=list(nextres)
+        nextval=nextx[0][0]
+        print(prevval)
+        print(nextval)
+        if(prevval!=nextval):
+            messagebox.showinfo("Success", "Reservation successful.")
+        else:
+            messagebox.showinfo("Failure", "Reservation unsuccessful. Check availability first")
             # query = "SELECT pnr_no FROM pass_tkt WHERE pass_id = :pass_id;"
             # values = {"pass_id": pass_ids[0]}
             # results = db.execute_dql_commands(query, values)
             # print(results[0])
             # self.result_output.config(text=f"PNR: {results[0][0]}")
-        except Exception as e:
-            self.result_output.config(text="Error: " + str(e))
+        # except Exception as e:
+        #     self.result_output.config(text="Error: " + str(e))
     
     
     def cancel_seat_page(self):
