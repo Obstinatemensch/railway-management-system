@@ -97,16 +97,19 @@ class RailwayManagementSystemGUI:
         # Button to display trains between stations
         btn_tbtwstn = Button(self.main_menu_frame, text="Trains Between Stations", font=("Helvetica", 16), command=self.trains_between_stations)
         btn_tbtwstn.pack(pady=10)
-        
-        # Button to display trains between stations
-        # Button(self.main_menu_frame, text="Availability", font=("Helvetica", 16), command=self.num_avail).pack(pady=10)
 
         #Button to add a cancellation page
         btn_cancel = Button(self.main_menu_frame, text="Cancel Seat", font=("Helvetica", 16), command=self.cancel_seat_page)
         btn_cancel.pack(pady=10)
+        
+        # disabling the button reserve_page when not logged in
         if not self.isLoggedIn:
             btn_reserve.config(state="disabled")
             btn_cancel.config(state="disabled")
+            
+        # disabling the button for login page when logged in    
+        else:
+            btn_login.config(state="disabled")
 
     def trains_between_stations(self):
         # Clear the main menu frame
