@@ -62,7 +62,7 @@ try:
                         host=HOST,port=PORT,
                         db_name=DATABASE_NAME)
     engine = db.engine
-    print('Arun')
+    # print('Arun')
 except:
     print('Not working')
 class RailwayManagementSystemGUI:
@@ -89,9 +89,12 @@ class RailwayManagementSystemGUI:
         # Button to display trains between stations
         Button(self.main_menu_frame, text="Trains Between Stations", font=("Helvetica", 16), command=self.trains_between_stations).pack(pady=10)
         
+        # Button to display trains between stations
+        # Button(self.main_menu_frame, text="Availability", font=("Helvetica", 16), command=self.num_avail).pack(pady=10)
+
         #Button to add a cancellation page
         Button(self.main_menu_frame, text="Cancel Seat", font=("Helvetica", 16), command=self.cancel_seat_page).pack(pady=10)
-        
+
     def trains_between_stations(self):
         # Clear the main menu frame
         self.main_menu_frame.destroy()
@@ -129,14 +132,12 @@ class RailwayManagementSystemGUI:
         # Create a label for the output widget
         self.train_list_label = Label(self.output_frame, text="Trains Between Stations:")
         self.train_list_label.pack()
-        
-        #Button to go back to the home page
+
+        # Create a button to go back to the home page
         self.reserve_button = Button(self.input_frame, text="Go Back", command=lambda: (self.input_frame.destroy(),self.output_frame.destroy(), self.main_page()))
         self.reserve_button.grid(row=4, column=0, columnspan=2, pady=10)
 
-        # # Create a Listbox widget for the output
-        # self.train_listbox = Listbox(self.output_frame, width=50)
-        # self.train_listbox.pack()
+        # Create a Treeview widget for the output
         self.train_treeview = ttk.Treeview(self.output_frame, columns=(0, 1, 2, 3, 4, 5,6,7,8), show='headings', height=15)
         self.train_treeview.pack()
         self.train_treeview.heading(0, text='Train Number')
@@ -148,6 +149,24 @@ class RailwayManagementSystemGUI:
         self.train_treeview.heading(6, text='Dest Arrival Time')
         self.train_treeview.heading(7, text='Dest Dept Time')
         self.train_treeview.heading(8, text='Day Number')
+
+        # Bind a function to the Train Number column to execute the num_available query
+        def on_train_click(event):
+            selection = self.train_treeview.selection()
+            if selection:
+                # print('Inside num')
+                train_num = self.train_treeview.item(selection[0])['values'][0]
+                source_station = self.source_station_entry.get()
+                dest_station = self.destination_station_entry.get()
+                day_of_week = self.day_of_week.get()
+                query = f"SELECT num_available({train_num}, '{source_station}', '{dest_station}', '06-05-2023', 'CC')"
+                # Execute the query and display the result
+                results = db.execute_dql_commands(query)
+                x=list(results)
+                value = x[0][0]
+                messagebox.showinfo("Available Seats", f"Number of available seats on train {train_num}: {value}")
+
+        self.train_treeview.bind("<Button-1>", on_train_click)
 
 
     # # works well, but o/p in terminal
