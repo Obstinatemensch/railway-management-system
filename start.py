@@ -71,6 +71,10 @@ class RailwayManagementSystemGUI:
         self.master = master
         self.master.title("Railway Management System")
         
+        self.main_page()
+    
+    def main_page(self):
+        
         # Create a frame for the main menu
         self.main_menu_frame = Frame(self.master)
         self.main_menu_frame.pack(pady=50)
@@ -125,6 +129,10 @@ class RailwayManagementSystemGUI:
         # Create a label for the output widget
         self.train_list_label = Label(self.output_frame, text="Trains Between Stations:")
         self.train_list_label.pack()
+        
+        #Button to go back to the home page
+        self.reserve_button = Button(self.input_frame, text="Go Back", command=lambda: (self.input_frame.destroy(),self.output_frame.destroy(), self.main_page()))
+        self.reserve_button.grid(row=4, column=0, columnspan=2, pady=10)
 
         # # Create a Listbox widget for the output
         # self.train_listbox = Listbox(self.output_frame, width=50)
@@ -223,6 +231,8 @@ class RailwayManagementSystemGUI:
         # Create a button to submit the login information
         Button(self.login_frame, text="Login", font=("Helvetica", 16), command=self.login).pack(pady=10)
 
+        #Button to go back to the home page
+        Button(self.login_frame, text="Go Back", font=("Helvetica", 16), command=lambda: (self.login_frame.destroy(), self.main_page())).pack(pady=10)
         
     def login(self):
         # Get the values from the entry boxes
@@ -293,6 +303,10 @@ class RailwayManagementSystemGUI:
         self.result_output = Entry(self.input_frame)
         self.result_output.grid(row=9, column=1)
         
+        #Button to go back to the home page
+        self.reserve_button = Button(self.input_frame, text="Go Back", command=lambda: (self.input_frame.destroy(),self.main_page()))
+        self.reserve_button.grid(row=10, column=0, columnspan=2, pady=10)
+        
         
     def reserve_seat(self):
         tno = self.tno_entry.get()
@@ -303,14 +317,7 @@ class RailwayManagementSystemGUI:
         usr_id = self.uid_entry.get()
         trxn_id = self.txn_entry.get()
         pass_ids = self.pass_entry.get()
-        # print(tno);
-        # print(src);
-        # print(dst);
-        # print(doj);
-        # print(c_typ);
-        # print(usr_id);
-        # print(trxn_id);
-        # print(pass_ids);
+        print(pass_ids[0]);
         
         if not tno or not src or not dst or not doj or not c_typ or not usr_id or not trxn_id or not pass_ids:
             messagebox.showerror("Error", "Please enter all required fields")
@@ -325,9 +332,13 @@ class RailwayManagementSystemGUI:
         try:
             db.execute_ddl_and_dml_commands(query1, values)
             messagebox.showinfo("Success", "Reservation successful.")
-            self.result_output.config(text=" 12")
-        except:
-            self.result_output.config(text="Reservation failed. Error")
+            query = "SELECT pnr_no FROM pass_tkt WHERE pass_id = :pass_id;"
+            values = {"pass_id": pass_ids[0]}
+            results = db.execute_dql_commands(query, values)
+            print(results[0])
+            self.result_output.config(text=f"PNR: {results[0][0]}")
+        except Exception as e:
+            self.result_output.config(text="Reservation failed. Error: " + str(e))
     
     
     def cancel_seat_page(self):
@@ -363,6 +374,10 @@ class RailwayManagementSystemGUI:
         self.result_output = Entry(self.input_frame)
         self.result_output.grid(row=4, column=1)
         
+        #Button to go back to the home page
+        self.reserve_button = Button(self.input_frame, text="Go Back", command=lambda: (self.input_frame.destroy(), self.main_page()))
+        self.reserve_button.grid(row=5, column=0, columnspan=2, pady=10)
+        
         
     def cancel_seat(self):
         pnr_no = self.pnr_no_entry.get()
@@ -374,7 +389,6 @@ class RailwayManagementSystemGUI:
             return
         query1 = f"CALL cancel_seat('{pnr_no}', {usr_id}, '{pass_ids}');"
         values = {"pnr_no": pnr_no,"usr_id": usr_id, "pass_ids": pass_ids}
-        result = db.execute_dql_commands(query1)
         try:
             db.execute_ddl_and_dml_commands(query1, values)
             # Show a message box to indicate successful reservation
