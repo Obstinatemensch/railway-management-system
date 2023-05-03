@@ -150,21 +150,41 @@ class RailwayManagementSystemGUI:
         self.train_treeview.heading(7, text='Dest Dept Time')
         self.train_treeview.heading(8, text='Day Number')
 
-        # Bind a function to the Train Number column to execute the num_available query
         def on_train_click(event):
             selection = self.train_treeview.selection()
             if selection:
-                # print('Inside num')
                 train_num = self.train_treeview.item(selection[0])['values'][0]
                 source_station = self.source_station_entry.get()
                 dest_station = self.destination_station_entry.get()
-                day_of_week = self.day_of_week.get()
-                query = f"SELECT num_available({train_num}, '{source_station}', '{dest_station}', '06-05-2023', 'CC')"
-                # Execute the query and display the result
-                results = db.execute_dql_commands(query)
-                x=list(results)
-                value = x[0][0]
-                messagebox.showinfo("Available Seats", f"Number of available seats on train {train_num}: {value}")
+
+                # Create a new window for entering the date and coach type
+                popup_window = Toplevel(self.master)
+                popup_window.title("Enter Date and Coach Type")
+                popup_window.geometry("300x150")
+
+                # Create label and entry box for the date
+                date_label = Label(popup_window, text="Enter date (DD-MM-YYYY):")
+                date_label.pack()
+                date_entry = Entry(popup_window)
+                date_entry.pack()
+
+                # Create label and entry box for the coach type
+                coach_label = Label(popup_window, text="Enter coach type:")
+                coach_label.pack()
+                coach_entry = Entry(popup_window)
+                coach_entry.pack()
+
+                # Create a button to execute the query
+                button = Button(popup_window, text="Check Availability", command=lambda: execute_query(train_num, source_station, dest_station, date_entry.get(), coach_entry.get(), popup_window))
+                button.pack()
+
+        def execute_query(train_num, source_station, dest_station, date, coach_type, popup_window):
+            query = f"SELECT num_available({train_num}, '{source_station}', '{dest_station}', '{date}', '{coach_type}')"
+            results = db.execute_dql_commands(query)
+            x = list(results)
+            value = x[0][0]
+            messagebox.showinfo("Available Seats", f"Number of available seats on train {train_num} on {date} in {coach_type} class: {value}")
+            popup_window.destroy()
 
         self.train_treeview.bind("<Button-1>", on_train_click)
 
