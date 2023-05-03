@@ -125,7 +125,7 @@ class RailwayManagementSystemGUI:
         self.destination_station_entry.grid(row=1, column=1)
 
         # Create a label and dropdown menu for the day of the week
-        self.day_of_week_label = Label(self.input_frame, text="Date:")
+        self.day_of_week_label = Label(self.input_frame, text="Date (DD-MM-YYYY):")
         self.day_of_week_label.grid(row=2, column=0)
         self.day_of_week_entry = Entry(self.input_frame)
         self.day_of_week_entry.grid(row=2, column=1)
@@ -184,6 +184,11 @@ class RailwayManagementSystemGUI:
                 button.pack()
 
         def execute_query(train_num, source_station, dest_station, date, coach_type, popup_window):
+            try:
+                date = datetime.datetime.strptime(date, "%d-%m-%Y")
+            except ValueError:
+                messagebox.showerror("Error", "Invalid date format. Please use DD-MM-YYYY")
+                return
             query = f"SELECT num_available({train_num}, '{source_station}', '{dest_station}', '{date}', '{coach_type}')"
             results = db.execute_dql_commands(query)
             x = list(results)
@@ -219,19 +224,28 @@ class RailwayManagementSystemGUI:
         destination_station = self.destination_station_entry.get()
         # print(self.day_of_week.get())
         date_string=self.day_of_week_entry.get()
-        # print(date_string)
+        
+        try:
+            date_string = datetime.datetime.strptime(date_string, "%d-%m-%Y")
+        except ValueError:
+            messagebox.showerror("Error", "Invalid date format. Please use DD-MM-YYYY")
+            return
+        day_week = date_string.strftime("%A")
 
-        # Extract the day of the week from the datetime object using strftime
-        day, month, year = map(int, date_string.split('-'))
+        
+        # # print(date_string)
 
-        day_week = calendar.day_name[calendar.weekday(year, month, day)]
+        # # Extract the day of the week from the datetime object using strftime
+        # day, month, year = map(int, date_string.split('-'))
 
-        # print(day_week)  # Output: Wednesday
+        # day_week = calendar.day_name[calendar.weekday(year, month, day)]
+
+        # # print(day_week)  # Output: Wednesday
         day_of_week = ["Sunday", "Saturday", "Friday","Thursday","Wednesday","Tuesday","Monday"   ].index(day_week)
 
         # Execute the query and display the results
         try:
-            query = f"SELECT * FROM TrainsBtwStns('{source_station}', '{destination_station}', {day_of_week});"
+            query = f"SELECT * FROM TrainsBtwStns('{source_station}', '{destination_station}', '{day_of_week}');"
             results = db.execute_dql_commands(query)
             self.train_treeview.delete(*self.train_treeview.get_children())
             for row in results:
