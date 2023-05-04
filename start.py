@@ -560,6 +560,25 @@ class RailwayManagementSystemGUI:
         self.input_frame = Frame(self.master)
         self.input_frame.pack(side=LEFT, padx=10, pady=10)
         
+        # Create a frame to hold the select to cancel pass widgets
+        self.input_frameRT = Frame(self.master)
+        self.input_frameRT.pack(side=RIGHT, padx=50, pady=10)
+        
+        self.pnr_no_labelA= Label(self.input_frameRT, text="Select passengers to be cancelled:")
+        self.pnr_no_labelA.grid(row=0, column=0)
+        self.toBeCancelled = Listbox(self.input_frameRT,selectmode='multiple',exportselection=0)
+        self.toBeCancelled.grid(row=0, column=1)
+        
+        query=f'SELECT pass_id,name,age,gender from passenger where user_id={self.userId};'
+        # print(query)
+        res=db.execute_dql_commands(query)
+        if res is not None:
+            x=list(res)
+            # print(x)
+            for i,eachEntry in enumerate(x):
+                self.toBeCancelled.insert(i,eachEntry)
+
+        
         self.pnr_no_label= Label(self.input_frame, text="PNR No:")
         self.pnr_no_label.grid(row=0, column=0)
         self.pnr_no_entry = Entry(self.input_frame)
@@ -580,7 +599,7 @@ class RailwayManagementSystemGUI:
         self.result_output.grid(row=4, column=1)
         
         #Button to go back to the home page
-        self.reserve_button = Button(self.input_frame, text="Go Back", command=lambda: (self.input_frame.destroy(), self.main_page()))
+        self.reserve_button = Button(self.input_frame, text="Go Back", command=lambda: (self.input_frame.destroy(),self.input_frameRT.destroy(), self.main_page()))
         self.reserve_button.grid(row=5, column=0, columnspan=2, pady=10)
         
         
