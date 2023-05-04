@@ -89,6 +89,10 @@ class RailwayManagementSystemGUI:
         # Button to login page
         btn_login = Button(self.main_menu_frame, text="Login", font=("Helvetica", 16), command=self.login_page)
         btn_login.pack(pady=10)
+        
+        # Button to logout
+        btn_logout = Button(self.main_menu_frame, text="Logout", font=("Helvetica", 16), command=self.logout)
+        btn_logout.pack(pady=10)
 
         #Button to add a reservation page
         btn_reserve = Button(self.main_menu_frame, text="Reserve Seat", font=("Helvetica", 16), command=self.reserve_tickets_page)
@@ -106,6 +110,7 @@ class RailwayManagementSystemGUI:
         if not self.isLoggedIn:
             btn_reserve.config(state="disabled")
             btn_cancel.config(state="disabled")
+            btn_logout.config(state="disabled")
             
         # disabling the button for login page when logged in    
         else:
@@ -282,7 +287,12 @@ class RailwayManagementSystemGUI:
         except:
             print('NOT WORKING')
 
-
+    def logout(self):
+        self.isLoggedIn = False
+        self.userId = None
+        self.main_menu_frame.destroy()
+        self.main_page()
+        
     def login_page(self):
         # Clear the main menu frame
         self.main_menu_frame.destroy()
@@ -325,6 +335,8 @@ class RailwayManagementSystemGUI:
             self.isLoggedIn=True
             # Show a message box to indicate successful login
             messagebox.showinfo("Success", "Login successful.")
+            self.login_frame.destroy()
+            self.main_page()
         else:
             messagebox.showinfo("Failure", "Incorrect credentials!")
         
