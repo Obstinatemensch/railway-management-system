@@ -116,16 +116,51 @@ class RailwayManagementSystemGUI:
         btn_cancel = Button(self.main_menu_frame, text="Cancel Seat", font=("Helvetica", 16), command=self.cancel_seat_page)
         btn_cancel.pack(pady=10)
         
+        #Button to add a cancellation page
+        btn_my = Button(self.main_menu_frame, text="My Bookings", font=("Helvetica", 16), command=self.my_bookings)
+        btn_my.pack(pady=10)
+
         # disabling the button reserve_page when not logged in
         if not self.isLoggedIn:
             btn_reserve.config(state="disabled")
             btn_cancel.config(state="disabled")
             btn_logout.config(state="disabled")
+            btn_my.config(state="disabled")
             
         # disabling the button for login page when logged in    
         else:
             btn_login.config(state="disabled")
             btn_signup.config(state="disabled")
+
+    def my_bookings(self):
+        q = "SELECT booking_id, fare, txn_id, user_id, booking_date FROM booking WHERE user_id=" + str(self.userId) + ";"
+        results = db.execute_dql_commands(q)
+        
+        # Create a new window to display the results
+        bookings_window = Toplevel(self.master)
+        bookings_window.title("My Bookings")
+        
+        # Create a Treeview widget to display the query results
+        tree = ttk.Treeview(bookings_window, columns=("booking_id", "fare", "txn_id", "user_id", "booking_date"), show="headings")
+        tree.heading("booking_id", text="Booking ID")
+        tree.heading("fare", text="Fare")
+        tree.heading("txn_id", text="Transaction ID")
+        tree.heading("user_id", text="User ID")
+        tree.heading("booking_date", text="Booking Date")
+        
+        # Insert the query results into the Treeview widget
+        for row in results:
+            # Convert the values to the desired format before inserting them into the Treeview widget
+            booking_id = str(row[0])
+            fare = str(row[1])
+            txn_id = str(row[2])
+            user_id = str(row[3])
+            booking_date = row[4].strftime("%Y-%m-%d %H:%M:%S")
+            tree.insert("", "end", values=(booking_id, fare, txn_id, user_id, booking_date))
+        
+        # Pack the Treeview widget and display the window
+        tree.pack(fill="both", expand=True)
+        bookings_window.mainloop()
 
     def trains_between_stations(self):
         # Clear the main menu frame
