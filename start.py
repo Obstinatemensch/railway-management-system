@@ -477,13 +477,26 @@ class RailwayManagementSystemGUI:
             return
         query1 = f"CALL cancel_seat('{pnr_no}', {usr_id}, '{pass_ids}');"
         values = {"pnr_no": pnr_no,"usr_id": usr_id, "pass_ids": pass_ids}
+        
+        prevquery=f'SELECT "isConfirmed" from pass_tkt where pnr_no={pnr_no};'
+        prevres=db.execute_dql_commands(prevquery)
+        prevx=list(prevres)
+        prevval=None
         try:
-            db.execute_ddl_and_dml_commands(query1, values)
-            # Show a message box to indicate successful reservation
-            messagebox.showinfo("Success", "Cancellation successful.")
-            self.result_output.config(text="Cancellation successful. Refunded: " )
+            prevval=prevx[0][0]
         except:
-            self.result_output.config(text="Cancellation failed. Error")
+            pass
+        db.execute_ddl_and_dml_commands(query1, values)
+        newquery=f'SELECT "isConfirmed" from pass_tkt where pnr_no={pnr_no};'
+        nextres=db.execute_dql_commands(newquery)
+        nextx=list(nextres)
+        nextval=nextx[0][0]
+        print(prevval)
+        print(nextval)
+        if(prevx!=nextx):
+            messagebox.showinfo("Success", "Cancelation successful.")
+        else:
+            messagebox.showinfo("Failure", "Cancelation unsuccessful. Check pnr number and status of seats first")
         
 
 def main():
