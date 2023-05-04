@@ -624,16 +624,21 @@ class RailwayManagementSystemGUI:
         if(prevval!=nextval):
             messagebox.showinfo("Success", "Reservation successful.")
             # Generate a PDF file of the ticket details
+            query = "SELECT pnr_no FROM pass_tkt WHERE pass_id ="+str(pass_ids)+';'
+            res=db.execute_dql_commands(query)
+            x=list(res)
+            pnrno=x[0][0]
             ticket_filename = f"ticket_{nextval}.pdf"
             c = canvas.Canvas(ticket_filename)
-            c.drawString(100, 750, f"Train Number: {tno}")
-            c.drawString(100, 700, f"Source Station: {src}")
-            c.drawString(100, 650, f"Destination Station: {dst}")
-            c.drawString(100, 600, f"Coach Type: {c_typ}")
-            c.drawString(100, 550, f"Date of Journey: {doj.strftime('%d-%m-%Y')}")
-            c.drawString(100, 500, f"User ID: {usr_id}")
-            c.drawString(100, 450, f"Transaction ID: {trxn_id}")
-            c.drawString(100, 400, f"Passenger IDs: {pass_ids}")
+            c.drawString(100, 750, f"PNR NO: {pnrno}")
+            c.drawString(100, 700, f"Train Number: {tno}")
+            c.drawString(100, 650, f"Source Station: {src}")
+            c.drawString(100, 600, f"Destination Station: {dst}")
+            c.drawString(100, 550, f"Coach Type: {c_typ}")
+            c.drawString(100, 500, f"Date of Journey: {doj.strftime('%d-%m-%Y')}")
+            c.drawString(100, 450, f"User ID: {usr_id}")
+            c.drawString(100, 400, f"Transaction ID: {trxn_id}")
+            c.drawString(100, 350, f"Passenger IDs: {pass_ids}")
             c.save()
             messagebox.showinfo("Success", f"Ticket details saved to {ticket_filename}")
             if platform.system() == "Windows":
