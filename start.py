@@ -5,10 +5,16 @@ from tkinter import messagebox
 import sqlalchemy
 from datetime import datetime
 import datetime
+import reportlab
+from reportlab.pdfgen import canvas
 import calendar
 from sqlalchemy.engine import create_engine
 from sqlalchemy.sql import text
 import random
+import os
+import subprocess
+import platform
+from tkcalendar import DateEntry
 
 class PostgresqlDB:
     def __init__(self,user_name,password,host,port,db_name):
@@ -131,9 +137,15 @@ class RailwayManagementSystemGUI:
         self.destination_station_entry.grid(row=1, column=1)
 
         # Create a label and dropdown menu for the day of the week
+        # self.day_of_week_label = Label(self.input_frame, text="Date (DD-MM-YYYY):")
+        # self.day_of_week_label.grid(row=2, column=0)
+        # self.day_of_week_entry = Entry(self.input_frame)
+        # self.day_of_week_entry.grid(row=2, column=1)
         self.day_of_week_label = Label(self.input_frame, text="Date (DD-MM-YYYY):")
         self.day_of_week_label.grid(row=2, column=0)
-        self.day_of_week_entry = Entry(self.input_frame)
+
+        # Create a DateEntry widget for selecting the date of journey
+        self.day_of_week_entry = DateEntry(self.input_frame, date_pattern="dd-mm-yyyy")
         self.day_of_week_entry.grid(row=2, column=1)
 
         # Create a button to execute the query
@@ -354,11 +366,18 @@ class RailwayManagementSystemGUI:
         self.dst_entry = Entry(self.input_frame)
         self.dst_entry.grid(row=2, column=1)
         
-        self.doj_label= Label(self.input_frame, text="Date of journey (DD-MM-YYYY):")
-        self.doj_label.grid(row=3, column=0)
-        self.doj_entry = Entry(self.input_frame)
-        self.doj_entry.grid(row=3, column=1)
+        # self.doj_label= Label(self.input_frame, text="Date of journey (DD-MM-YYYY):")
+        # self.doj_label.grid(row=3, column=0)
+        # self.doj_entry = Entry(self.input_frame)
+        # self.doj_entry.grid(row=3, column=1)
         
+        self.doj_label = Label(self.input_frame, text="Date of journey (DD-MM-YYYY):")
+        self.doj_label.grid(row=3, column=0)
+
+        # Create a DateEntry widget for selecting the date of journey
+        self.doj_entry = DateEntry(self.input_frame, date_pattern="dd-mm-yyyy")
+        self.doj_entry.grid(row=3, column=1)
+
         # Create a label and dropdown menu for the day of the week
         self.ctyp_entry_label = Label(self.input_frame, text="Coach Type:")
         self.ctyp_entry_label.grid(row=4, column=0)
@@ -423,6 +442,25 @@ class RailwayManagementSystemGUI:
         print(nextval)
         if(prevval!=nextval):
             messagebox.showinfo("Success", "Reservation successful.")
+            # Generate a PDF file of the ticket details
+            ticket_filename = f"ticket_{nextval}.pdf"
+            c = canvas.Canvas(ticket_filename)
+            c.drawString(100, 750, f"Train Number: {tno}")
+            c.drawString(100, 700, f"Source Station: {src}")
+            c.drawString(100, 650, f"Destination Station: {dst}")
+            c.drawString(100, 600, f"Coach Type: {c_typ}")
+            c.drawString(100, 550, f"Date of Journey: {doj.strftime('%d-%m-%Y')}")
+            c.drawString(100, 500, f"User ID: {usr_id}")
+            c.drawString(100, 450, f"Transaction ID: {trxn_id}")
+            c.drawString(100, 400, f"Passenger IDs: {pass_ids}")
+            c.save()
+            messagebox.showinfo("Success", f"Ticket details saved to {ticket_filename}")
+            if platform.system() == "Windows":
+                subprocess.Popen([ticket_filename], shell=True)
+            elif platform.system() == "Darwin":
+                subprocess.Popen(["open", ticket_filename])
+            else:
+                subprocess.Popen(["xdg-open", ticket_filename])
         else:
             messagebox.showinfo("Failure", "Reservation unsuccessful. Check availability first")
             # query = "SELECT pnr_no FROM pass_tkt WHERE pass_id = :pass_id;"
