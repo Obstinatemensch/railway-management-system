@@ -586,10 +586,13 @@ class RailwayManagementSystemGUI:
         pass_ids = None
         selected_text_list = [self.toBeBooked.get(i) for i in self.toBeBooked.curselection()]
         print(selected_text_list)
-        for eachsel in selected_text_list:
-            eachsel=','.split(eachsel)
-            print(eachsel)
-            print(eachsel[1])
+        numbers = [s.split(',')[0].strip('()') for s in selected_text_list]
+        pass_ids = ','.join(numbers)
+        print(pass_ids)
+        # for eachsel in selected_text_list:
+        #     eachsel=','.split(eachsel)
+        #     print(eachsel)
+        #     print(eachsel[1])
         ###
         
         if not tno or not src or not dst or not doj or not c_typ or not usr_id or not trxn_id or not pass_ids:
