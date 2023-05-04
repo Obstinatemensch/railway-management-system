@@ -92,6 +92,10 @@ class RailwayManagementSystemGUI:
         self.main_menu_frame.pack(pady=50)
         Label(self.main_menu_frame, text="Welcome to Railway Management System", font=("Helvetica", 20)).pack(side=TOP, pady=20)
 
+        # Button to signup page
+        btn_signup = Button(self.main_menu_frame, text="Sign up", font=("Helvetica", 16), command=self.signup_page)
+        btn_signup.pack(pady=10)
+        
         # Button to login page
         btn_login = Button(self.main_menu_frame, text="Login", font=("Helvetica", 16), command=self.login_page)
         btn_login.pack(pady=10)
@@ -121,6 +125,7 @@ class RailwayManagementSystemGUI:
         # disabling the button for login page when logged in    
         else:
             btn_login.config(state="disabled")
+            btn_signup.config(state="disabled")
 
     def trains_between_stations(self):
         # Clear the main menu frame
@@ -346,6 +351,106 @@ class RailwayManagementSystemGUI:
         else:
             messagebox.showinfo("Failure", "Incorrect credentials!")
         
+    def signup_page(self):
+        # Clear the main menu frame
+        self.main_menu_frame.destroy()
+
+        # Create a frame for the Register page
+        self.signup_frame = Frame(self.master)
+        self.signup_frame.pack(pady=50)
+        Label(self.signup_frame, text="Register Page", font=("Helvetica", 20)).pack(side=TOP, pady=20)
+
+        # Create a username label and entry box
+        Label(self.signup_frame, text="Username (integer only)", font=("Helvetica", 16)).pack(pady=3)
+        self.username_entry_signup_frame = Entry(self.signup_frame, font=("Helvetica", 16))
+        self.username_entry_signup_frame.pack(pady=3)
+
+        # Create a password label and entry box
+        Label(self.signup_frame, text="Password", font=("Helvetica", 16)).pack(pady=3)
+        self.password_entry_signup_frame = Entry(self.signup_frame, font=("Helvetica", 16), show="*")
+        self.password_entry_signup_frame.pack(pady=3)
+        
+        # Create a name label and entry box
+        Label(self.signup_frame, text="Name", font=("Helvetica", 16)).pack(pady=3)
+        self.name_entry_signup_frame = Entry(self.signup_frame, font=("Helvetica", 16))
+        self.name_entry_signup_frame.pack(pady=3)
+
+        # Create a email label and entry box
+        Label(self.signup_frame, text="Email", font=("Helvetica", 16)).pack(pady=3)
+        self.email_entry_signup_frame = Entry(self.signup_frame, font=("Helvetica", 16))
+        self.email_entry_signup_frame.pack(pady=3)
+        
+        # Create a phno label and entry box
+        Label(self.signup_frame, text="phno", font=("Helvetica", 16)).pack(pady=3)
+        self.phno_entry_signup_frame = Entry(self.signup_frame, font=("Helvetica", 16))
+        self.phno_entry_signup_frame.pack(pady=3)
+
+        # Create a aadhar label and entry box
+        Label(self.signup_frame, text="aadhar", font=("Helvetica", 16)).pack(pady=3)
+        self.aadhar_entry_signup_frame = Entry(self.signup_frame, font=("Helvetica", 16))
+        self.aadhar_entry_signup_frame.pack(pady=3)
+        
+        # Create a address label and entry box
+        Label(self.signup_frame, text="address", font=("Helvetica", 16)).pack(pady=3)
+        self.address_entry_signup_frame = Entry(self.signup_frame, font=("Helvetica", 16))
+        self.address_entry_signup_frame.pack(pady=3)
+
+        # Create a dob label and entry box
+        Label(self.signup_frame, text="dob", font=("Helvetica", 16)).pack(pady=3)
+        self.dob_entry_signup_frame = Entry(self.signup_frame, font=("Helvetica", 16))
+        self.dob_entry_signup_frame.pack(pady=3)
+
+        # Create a button to submit the Register information
+        Button(self.signup_frame, text="Register", font=("Helvetica", 16), command=self.signup).pack(pady=3)
+
+        #Button to go back to the home page
+        Button(self.signup_frame, text="Go Back", font=("Helvetica", 16), command=lambda: (self.signup_frame.destroy(), self.main_page())).pack(pady=3)
+    
+    def signup(self):
+        # Get the values from the entry boxes
+        username = self.username_entry_signup_frame.get()
+        password = self.password_entry_signup_frame.get()
+        name = self.name_entry_signup_frame.get()
+        email = self.email_entry_signup_frame.get()
+        phno = self.phno_entry_signup_frame.get()
+        aadhar = self.aadhar_entry_signup_frame.get()
+        address = self.address_entry_signup_frame.get()
+        dob = self.dob_entry_signup_frame.get()
+        try:
+            dob = datetime.datetime.strptime(dob, "%d-%m-%Y")
+        except ValueError:
+            messagebox.showerror("Error", "Invalid date format. Please use DD-MM-YYYY")
+            return
+
+        query = f"SELECT COUNT(*) FROM new_user WHERE user_id={username}"
+        # query = f"SELECT num_available({train_num}, '{source_station}', '{dest_station}', '{date}', '{coach_type}')"
+        results = db.execute_dql_commands(query)
+        x = list(results)
+        value = x[0][0]
+        # print(x)
+        if value==0:
+            print("not already existent username, trying to insert")
+            query = f"INSERT INTO new_user VALUES ({username},'{name}','{email}',{phno},{aadhar},'{address}','{dob}','{password}');"
+            results = db.execute_dql_commands(query)
+            print("insert attempted")
+            
+            query1 = f"SELECT COUNT(*) FROM new_user WHERE user_id={username}"
+            # query = f"SELECT num_available({train_num}, '{source_station}', '{dest_station}', '{date}', '{coach_type}')"
+            results1 = db.execute_dql_commands(query1)
+            x1 = list(results1)
+            value1 = x1[0][0]
+            if value1==1:
+                self.userId=username
+                self.isLoggedIn=True
+                # Show a message box to indicate successful login
+                messagebox.showinfo("Success", "Sign up successful.")
+                self.signup_frame.destroy()
+                self.main_page()
+            else:
+                print("unexpected error occurred in inserting")
+                messagebox.showinfo("Success", "Sign up failed, see terminal.")
+        else:
+            messagebox.showinfo("Failure", "Such a username is already registered!")
         
     def reserve_tickets_page(self):
 
