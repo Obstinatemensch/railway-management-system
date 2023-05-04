@@ -81,6 +81,7 @@ class RailwayManagementSystemGUI:
         self.master.title("Railway Management System")
         self.isLoggedIn = True
         self.userId = 66637
+        self.PNR_tobecancelled = None
         # self.isLoggedIn = False
         # self.userId = None
         self.main_page()
@@ -667,38 +668,66 @@ class RailwayManagementSystemGUI:
         self.input_frameRT.pack(side=RIGHT, padx=50, pady=10)
         
         self.pnr_no_labelA= Label(self.input_frameRT, text="Select passengers to be cancelled:")
-        self.pnr_no_labelA.grid(row=0, column=0)
+        self.pnr_no_labelA.grid(row=0, column=3)
         self.toBeCancelled = Listbox(self.input_frameRT,selectmode='multiple',exportselection=0)
-        self.toBeCancelled.grid(row=0, column=1)
+        self.toBeCancelled.grid(row=0, column=4)
         
-        query=f'SELECT pass_id,name,age,gender from passenger where user_id={self.userId};'
-        # print(query)
+        
+
+        
+        self.pnr_no_label= Label(self.input_frameRT, text="PNR No:")
+        self.pnr_no_label.grid(row=0, column=0)
+        # self.pnr_no_entry = Entry(self.input_frame)
+        # self.pnr_no_entry.grid(row=0, column=1)
+        self.PNRtoBeCancelled = Listbox(self.input_frameRT,selectmode='single',exportselection=0)
+        self.PNRtoBeCancelled.grid(row=0, column=1)
+        
+        query=f'SELECT distinct pnr_no from booking natural join pass_tkt where pass_tkt."isConfirmed"=\'CNF\' and user_id={self.userId};'
+        print(query)
         res=db.execute_dql_commands(query)
         if res is not None:
             x=list(res)
             # print(x)
             for i,eachEntry in enumerate(x):
-                self.toBeCancelled.insert(i,eachEntry)
-
+                self.PNRtoBeCancelled.insert(i,eachEntry)
         
-        self.pnr_no_label= Label(self.input_frame, text="PNR No:")
-        self.pnr_no_label.grid(row=0, column=0)
-        self.pnr_no_entry = Entry(self.input_frame)
-        self.pnr_no_entry.grid(row=0, column=1)
+        def execnext():
+            self.PNR_tobecancelled = None
+            
+            ####
+            selected_text_list1 = [self.PNRtoBeCancelled.get(i) for i in self.PNRtoBeCancelled.curselection()]
+            # print(selected_text_list1)
+            numbers = [s.split(',')[0].strip('()') for s in selected_text_list1]
+            self.PNR_tobecancelled = ','.join(numbers)
+            # print(self.PNR_tobecancelled)
+            ####
+            query=f'select distinct pass_id from booking natural join pass_tkt where pass_tkt."isConfirmed"=\'CNF\' and user_id={self.userId} and pnr_no={self.PNR_tobecancelled};'
+            # print(query)
+            res=db.execute_dql_commands(query)
+            if res is not None:
+                x=list(res)
+                # print(x)
+                for i,eachEntry in enumerate(x):
+                    self.toBeCancelled.insert(i,eachEntry)
+            pass
         
-        self.pass_label= Label(self.input_frame, text="Passenger IDs (comma-separated):")
-        self.pass_label.grid(row=2, column=0)
-        self.pass_entry = Entry(self.input_frame)
-        self.pass_entry.grid(row=2, column=1)
+        self.btnNext = Button(self.input_frameRT,text="Next",command=execnext)
+        self.btnNext.grid(row=2, column=2, columnspan=2, pady=10)
+        
+        
+        # self.pass_label= Label(self.input_frame, text="Passenger IDs (comma-separated):")
+        # self.pass_label.grid(row=2, column=0)
+        # self.pass_entry = Entry(self.input_frame)
+        # self.pass_entry.grid(row=2, column=1)
         
         # Create a button to execute the query
         self.cancel_button = Button(self.input_frame, text="Cancel seats", command=self.cancel_seat)
-        self.cancel_button.grid(row=3, column=0, columnspan=2, pady=10)
+        self.cancel_button.grid(row=5, column=3, columnspan=2, pady=20)
         
-        self.result_label= Label(self.input_frame, text="Cancellation status:")
-        self.result_label.grid(row=4, column=0)
-        self.result_output = Entry(self.input_frame)
-        self.result_output.grid(row=4, column=1)
+        # self.result_label= Label(self.input_frame, text="Cancellation status:")
+        # self.result_label.grid(row=4, column=0)
+        # self.result_output = Entry(self.input_frame)
+        # self.result_output.grid(row=4, column=1)
         
         #Button to go back to the home page
         self.reserve_button = Button(self.input_frame, text="Go Back", command=lambda: (self.input_frame.destroy(),self.input_frameRT.destroy(), self.main_page()))
@@ -706,12 +735,19 @@ class RailwayManagementSystemGUI:
         
         
     def cancel_seat(self):
-        pnr_no = self.pnr_no_entry.get()
+        # pnr_no = self.pnr_no_entry.get()
         usr_id = self.userId
-        pass_ids = self.pass_entry.get()
-        # selected_text_list = [self.toBeCancelled.get(i) for i in self.toBeCancelled.curselection()]
+        # pass_ids = self.pass_entry.get()
+        pnr_no = self.PNR_tobecancelled
+        
+        pass_ids = None
+        selected_text_list = [self.toBeCancelled.get(i) for i in self.toBeCancelled.curselection()]
         # print(selected_text_list)
-        # return
+        numbers = [s.split(',')[0].strip('()') for s in selected_text_list]
+        pass_ids = ','.join(numbers)
+        # print(pass_ids)
+        
+        
         
         if not pnr_no or not usr_id or not pass_ids:
             messagebox.showerror("Error", "Please enter all required fields")
@@ -732,8 +768,8 @@ class RailwayManagementSystemGUI:
         nextres=db.execute_dql_commands(newquery)
         nextx=list(nextres)
         nextval=nextx[0][0]
-        print(prevval)
-        print(nextval)
+        # print(prevval)
+        # print(nextval)
         if(prevx!=nextx):
             messagebox.showinfo("Success", "Cancelation successful.")
         else:
