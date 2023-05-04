@@ -131,6 +131,7 @@ class RailwayManagementSystemGUI:
             btn_cancel.config(state="disabled")
             btn_logout.config(state="disabled")
             btn_passenger.config(state="disabled")
+            btn_my.config(state="disabled")
             
         # disabling the button for login page when logged in    
         else:
