@@ -79,10 +79,10 @@ class RailwayManagementSystemGUI:
         # Initialize the GUI window
         self.master = master
         self.master.title("Railway Management System")
-        # self.isLoggedIn = True
-        # self.userId = 66637
-        self.isLoggedIn = False
-        self.userId = None
+        self.isLoggedIn = True
+        self.userId = 66637
+        # self.isLoggedIn = False
+        # self.userId = None
         self.main_page()
     
     def main_page(self):
@@ -465,7 +465,9 @@ class RailwayManagementSystemGUI:
 
         # Create a frame to hold the input widgets
         self.input_frame = Frame(self.master)
-        self.input_frame.pack(padx=10, pady=10)
+        self.input_frame.pack(side=LEFT, padx=10, pady=10)
+        self.input_frameRT1 = Frame(self.master)
+        self.input_frameRT1.pack(side=RIGHT, padx=50, pady=10)
 
         # Create labels and entry boxes for all the required information
         self.tno_label = Label(self.input_frame, text="Train Number:")
@@ -506,6 +508,21 @@ class RailwayManagementSystemGUI:
         self.pass_label.grid(row=7, column=0)
         self.pass_entry = Entry(self.input_frame)
         self.pass_entry.grid(row=7, column=1)
+        self.pass_entry.config(state="disabled")
+        
+        self.pass_sel_label= Label(self.input_frameRT1, text="Select passengers:")
+        self.pass_sel_label.grid(row=7, column=0)
+        self.toBeBooked = Listbox(self.input_frameRT1,selectmode='multiple',exportselection=0)
+        self.toBeBooked.grid(row=0, column=1)
+        
+        query=f'SELECT pass_id,name,age,gender from passenger where user_id={self.userId};'
+        # print(query)
+        res=db.execute_dql_commands(query)
+        if res is not None:
+            x=list(res)
+            # print(x)
+            for i,eachEntry in enumerate(x):
+                self.toBeBooked.insert(i,eachEntry)
         
         # Create a button to execute the query
         self.reserve_button = Button(self.input_frame, text="Reserve Seats", command=self.reserve_seat)
@@ -517,7 +534,7 @@ class RailwayManagementSystemGUI:
         self.result_output.grid(row=9, column=1)
         
         #Button to go back to the home page
-        self.reserve_button = Button(self.input_frame, text="Go Back", command=lambda: (self.input_frame.destroy(),self.main_page()))
+        self.reserve_button = Button(self.input_frame, text="Go Back", command=lambda: (self.input_frame.destroy(),self.input_frameRT1.destroy(),self.main_page()))
         self.reserve_button.grid(row=10, column=0, columnspan=2, pady=10)
         
         
@@ -529,7 +546,16 @@ class RailwayManagementSystemGUI:
         c_typ = self.ctyp_entry.get()
         usr_id = self.userId
         trxn_id = random.randint(100,1000000)
-        pass_ids = self.pass_entry.get()
+        # pass_ids = self.pass_entry.get()
+        ###
+        pass_ids = None
+        selected_text_list = [self.toBeBooked.get(i) for i in self.toBeBooked.curselection()]
+        print(selected_text_list)
+        for eachsel in selected_text_list:
+            eachsel=','.split(eachsel)
+            print(eachsel)
+            print(eachsel[1])
+        ###
         
         if not tno or not src or not dst or not doj or not c_typ or not usr_id or not trxn_id or not pass_ids:
             messagebox.showerror("Error", "Please enter all required fields")
@@ -645,6 +671,9 @@ class RailwayManagementSystemGUI:
         pnr_no = self.pnr_no_entry.get()
         usr_id = self.userId
         pass_ids = self.pass_entry.get()
+        # selected_text_list = [self.toBeCancelled.get(i) for i in self.toBeCancelled.curselection()]
+        # print(selected_text_list)
+        # return
         
         if not pnr_no or not usr_id or not pass_ids:
             messagebox.showerror("Error", "Please enter all required fields")
