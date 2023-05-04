@@ -608,7 +608,7 @@ class RailwayManagementSystemGUI:
         if(prevval!=nextval):
             messagebox.showinfo("Success", "Reservation successful.")
             # Generate a PDF file of the ticket details
-            query = "SELECT pnr_no FROM pass_tkt WHERE pass_id ="+str(pass_ids)+';'
+            query = "SELECT * FROM pass_tkt ORDER BY src_date DESC LIMIT 1 ;"
             res=db.execute_dql_commands(query)
             x=list(res)
             pnrno=x[0][0]
