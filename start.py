@@ -5,10 +5,16 @@ from tkinter import messagebox
 import sqlalchemy
 from datetime import datetime
 import datetime
+import reportlab
+from reportlab.pdfgen import canvas
 import calendar
 from sqlalchemy.engine import create_engine
 from sqlalchemy.sql import text
 import random
+import os
+import subprocess
+import platform
+from tkcalendar import DateEntry
 
 class PostgresqlDB:
     def __init__(self,user_name,password,host,port,db_name):
@@ -348,7 +354,7 @@ class RailwayManagementSystemGUI:
 
         # Create a frame to hold the input widgets
         self.input_frame = Frame(self.master)
-        self.input_frame.pack(side=LEFT, padx=10, pady=10)
+        self.input_frame.pack(padx=10, pady=10)
 
         # Create labels and entry boxes for all the required information
         self.tno_label = Label(self.input_frame, text="Train Number:")
@@ -510,7 +516,74 @@ class RailwayManagementSystemGUI:
         else:
             messagebox.showinfo("Failure", "Cancelation unsuccessful. Check pnr number and status of seats first")
         
+    def passenger_registration_page(self):
 
+        # Clear the main menu frame
+        self.main_menu_frame.destroy()
+
+        # Create a frame to hold the input widgets
+        self.input_frame = Frame(self.master)
+        self.input_frame.pack(side=LEFT, padx=10, pady=10)
+        
+        self.name_label= Label(self.input_frame, text="Name:")
+        self.name_label.grid(row=0, column=0)
+        self.name_entry = Entry(self.input_frame)
+        self.name_entry.grid(row=0, column=1)
+        
+        self.age_label= Label(self.input_frame, text="Age:")
+        self.age_label.grid(row=1, column=0)
+        self.age_entry = Entry(self.input_frame)
+        self.age_entry.grid(row=1, column=1)
+        
+        # Create a label and dropdown menu for choosing the gender
+        self.gender_label = Label(self.input_frame, text="Gender:")
+        self.gender_label.grid(row=2, column=0)
+        self.gender = StringVar()
+        self.gender_rolldown = OptionMenu(self.input_frame, self.ctyp_entry, *["M", "F","Other"])
+        self.gender_rolldown.grid(row=2, column=1)
+        
+        self.nationality_label= Label(self.input_frame, text="Nationality:")
+        self.nationality_label.grid(row=3, column=0)
+        self.nationality_entry = Entry(self.input_frame)
+        self.nationality_entry.grid(row=3, column=1)
+        
+        # Create a label and dropdown menu for choosing the concession type
+        self.conces_typ_label = Label(self.input_frame, text="Concession Type:")
+        self.conces_typ_label.grid(row=4, column=0)
+        self.conces_typ = StringVar()
+        self.conces_typ_rolldown = OptionMenu(self.input_frame, self.ctyp_entry, *["senior_ctzn", "armed_forces","student","other"])
+        self.conces_typ_rolldown.grid(row=4, column=1)
+        
+        # Create a button to execute the query
+        self.create_user_button = Button(self.input_frame, text="Create User", command=self.passenger_registration)
+        self.create_user_button.grid(row=5, column=0, columnspan=2, pady=10)
+        
+        #Button to go back to the home page
+        self.reserve_button = Button(self.input_frame, text="Go Back", command=lambda: (self.input_frame.destroy(), self.main_page()))
+        self.reserve_button.grid(row=6, column=0, columnspan=2, pady=10)
+            
+    def passenger_registration(self):
+        name = self.name_entry.get()
+        age = self.age_entry.get()
+        gender = self.gender.get()
+        nationality =self.nationality_entry.get()
+        conces_typ = self.conces_typ.get()        
+        
+        pass_query=f'SELECT count(*) from passenger;'
+        count_res=db.execute_dql_commands(pass_query)
+        
+        print(count_res[0][0])
+        
+        pass_id=count_res[0][0]+5
+        
+        if not name or not age or not gender or not nationality or not conces_typ or not pass_id:
+            messagebox.showerror("Error", "Please enter all required fields")
+            return
+  
+        query1 = f"INSERT INTO passenger('pass_id', 'name', 'age', 'gender', 'nationality', 'conces_typ') VALUES('{pass_id}','{name}', '{age}', '{gender}','{nationality}','{conces_typ}');"
+        db.execute_dql_commands(query1)
+        
+        
 def main():
     root=Tk()
     root.title("railway-management-system")
