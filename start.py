@@ -103,6 +103,10 @@ class RailwayManagementSystemGUI:
         # Button to logout
         btn_logout = Button(self.main_menu_frame, text="Logout", font=("Helvetica", 16), command=self.logout)
         btn_logout.pack(pady=10)
+        
+        #Button to add a passenger registration page
+        btn_passenger = Button(self.main_menu_frame, text="Passenger Registration", font=("Helvetica", 16), command=self.passenger_registration_page)
+        btn_passenger.pack(pady=10)
 
         #Button to add a reservation page
         btn_reserve = Button(self.main_menu_frame, text="Reserve Seat", font=("Helvetica", 16), command=self.reserve_tickets_page)
@@ -121,6 +125,7 @@ class RailwayManagementSystemGUI:
             btn_reserve.config(state="disabled")
             btn_cancel.config(state="disabled")
             btn_logout.config(state="disabled")
+            btn_passenger.config(state="disabled")
             
         # disabling the button for login page when logged in    
         else:
@@ -226,25 +231,6 @@ class RailwayManagementSystemGUI:
 
         self.train_treeview.bind("<Button-1>", on_train_click)
 
-
-    # # works well, but o/p in terminal
-    # def display_trains(self):
-    #     # Get the values from the entry boxes and dropdown menu
-    #     source_station = self.source_station_entry.get()
-    #     destination_station = self.destination_station_entry.get()
-    #     day_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].index(self.day_of_week.get())
-
-    #     # Execute the query and display the results
-    #     query = f"SELECT * FROM TrainsBtwStns('{source_station}', '{destination_station}', {day_of_week});"
-    #     results = db.execute_dql_commands(query)
-    #     for row in results:
-    #         row_list = list(row)
-    #         for i in range(4, 8):
-    #             if isinstance(row_list[i], time):
-    #                 row_list[i] = row_list[i].strftime("%H:%M")
-    #             elif row_list[i] is None:
-    #                 row_list[i] = 'N/A'
-    #         print(tuple(row_list))
     
     def display_trains(self):
         # Get the values from the entry boxes and dropdown menu
@@ -342,7 +328,6 @@ class RailwayManagementSystemGUI:
 
         # TODO: Implement login functionality
         query = f"SELECT COUNT(*) FROM new_user WHERE user_id={username} AND password='{password}'"
-        # query = f"SELECT num_available({train_num}, '{source_station}', '{dest_station}', '{date}', '{coach_type}')"
         results = db.execute_dql_commands(query)
         x = list(results)
         value = x[0][0]
@@ -429,7 +414,6 @@ class RailwayManagementSystemGUI:
             return
 
         query = f"SELECT COUNT(*) FROM new_user WHERE user_id={username}"
-        # query = f"SELECT num_available({train_num}, '{source_station}', '{dest_station}', '{date}', '{coach_type}')"
         results = db.execute_dql_commands(query)
         x = list(results)
         value = x[0][0]
@@ -437,11 +421,10 @@ class RailwayManagementSystemGUI:
         if value==0:
             print("not already existent username, trying to insert")
             query = f"INSERT INTO new_user VALUES ({username},'{name}','{email}',{phno},{aadhar},'{address}','{dob}','{password}');"
-            results = db.execute_dql_commands(query)
+            results = db.execute_ddl_and_dml_commands(query)
             print("insert attempted")
             
             query1 = f"SELECT COUNT(*) FROM new_user WHERE user_id={username}"
-            # query = f"SELECT num_available({train_num}, '{source_station}', '{dest_station}', '{date}', '{coach_type}')"
             results1 = db.execute_dql_commands(query1)
             x1 = list(results1)
             value1 = x1[0][0]
@@ -454,7 +437,7 @@ class RailwayManagementSystemGUI:
                 self.main_page()
             else:
                 print("unexpected error occurred in inserting")
-                messagebox.showinfo("Success", "Sign up failed, see terminal.")
+                messagebox.showinfo("Error", "Sign up failed, see terminal.")
         else:
             messagebox.showinfo("Failure", "Such a username is already registered!")
         
@@ -580,13 +563,6 @@ class RailwayManagementSystemGUI:
                 subprocess.Popen(["xdg-open", ticket_filename])
         else:
             messagebox.showinfo("Failure", "Reservation unsuccessful. Check availability first")
-            # query = "SELECT pnr_no FROM pass_tkt WHERE pass_id = :pass_id;"
-            # values = {"pass_id": pass_ids[0]}
-            # results = db.execute_dql_commands(query, values)
-            # print(results[0])
-            # self.result_output.config(text=f"PNR: {results[0][0]}")
-        # except Exception as e:
-        #     self.result_output.config(text="Error: " + str(e))
     
     
     def cancel_seat_page(self):
@@ -658,45 +634,45 @@ class RailwayManagementSystemGUI:
         # Clear the main menu frame
         self.main_menu_frame.destroy()
 
-        # Create a frame to hold the input widgets
-        self.input_frame = Frame(self.master)
-        self.input_frame.pack(side=LEFT, padx=10, pady=10)
+        # Create a frame to hold the passenger registration
+        self.passenger_reg_frame = Frame(self.master)
+        self.passenger_reg_frame.pack(padx=10, pady=10)
         
-        self.name_label= Label(self.input_frame, text="Name:")
+        self.name_label= Label(self.passenger_reg_frame, text="Name:")
         self.name_label.grid(row=0, column=0)
-        self.name_entry = Entry(self.input_frame)
+        self.name_entry = Entry(self.passenger_reg_frame)
         self.name_entry.grid(row=0, column=1)
         
-        self.age_label= Label(self.input_frame, text="Age:")
+        self.age_label= Label(self.passenger_reg_frame, text="Age:")
         self.age_label.grid(row=1, column=0)
-        self.age_entry = Entry(self.input_frame)
+        self.age_entry = Entry(self.passenger_reg_frame)
         self.age_entry.grid(row=1, column=1)
         
         # Create a label and dropdown menu for choosing the gender
-        self.gender_label = Label(self.input_frame, text="Gender:")
+        self.gender_label = Label(self.passenger_reg_frame, text="Gender:")
         self.gender_label.grid(row=2, column=0)
         self.gender = StringVar()
-        self.gender_rolldown = OptionMenu(self.input_frame, self.ctyp_entry, *["M", "F","Other"])
+        self.gender_rolldown = OptionMenu(self.passenger_reg_frame, self.gender, *["M", "F","Other"])
         self.gender_rolldown.grid(row=2, column=1)
         
-        self.nationality_label= Label(self.input_frame, text="Nationality:")
+        self.nationality_label= Label(self.passenger_reg_frame, text="Nationality:")
         self.nationality_label.grid(row=3, column=0)
-        self.nationality_entry = Entry(self.input_frame)
+        self.nationality_entry = Entry(self.passenger_reg_frame)
         self.nationality_entry.grid(row=3, column=1)
         
         # Create a label and dropdown menu for choosing the concession type
-        self.conces_typ_label = Label(self.input_frame, text="Concession Type:")
+        self.conces_typ_label = Label(self.passenger_reg_frame, text="Concession Type:")
         self.conces_typ_label.grid(row=4, column=0)
         self.conces_typ = StringVar()
-        self.conces_typ_rolldown = OptionMenu(self.input_frame, self.ctyp_entry, *["senior_ctzn", "armed_forces","student","other"])
+        self.conces_typ_rolldown = OptionMenu(self.passenger_reg_frame, self.conces_typ, *["senior_ctzn", "armed_forces","student","other"])
         self.conces_typ_rolldown.grid(row=4, column=1)
         
         # Create a button to execute the query
-        self.create_user_button = Button(self.input_frame, text="Create User", command=self.passenger_registration)
+        self.create_user_button = Button(self.passenger_reg_frame, text="Create User", command=self.passenger_registration)
         self.create_user_button.grid(row=5, column=0, columnspan=2, pady=10)
         
         #Button to go back to the home page
-        self.reserve_button = Button(self.input_frame, text="Go Back", command=lambda: (self.input_frame.destroy(), self.main_page()))
+        self.reserve_button = Button(self.passenger_reg_frame, text="Go Back", command=lambda: (self.passenger_reg_frame.destroy(), self.main_page()))
         self.reserve_button.grid(row=6, column=0, columnspan=2, pady=10)
             
     def passenger_registration(self):
@@ -708,18 +684,46 @@ class RailwayManagementSystemGUI:
         
         pass_query=f'SELECT count(*) from passenger;'
         count_res=db.execute_dql_commands(pass_query)
-        
-        print(count_res[0][0])
-        
-        pass_id=count_res[0][0]+5
+        x = list(count_res)
+
+        pass_id=x[0][0]+5
         
         if not name or not age or not gender or not nationality or not conces_typ or not pass_id:
             messagebox.showerror("Error", "Please enter all required fields")
             return
-  
-        query1 = f"INSERT INTO passenger('pass_id', 'name', 'age', 'gender', 'nationality', 'conces_typ') VALUES('{pass_id}','{name}', '{age}', '{gender}','{nationality}','{conces_typ}');"
-        db.execute_dql_commands(query1)
         
+        query = f"SELECT COUNT(*) FROM passenger WHERE name='{name}' AND age='{age}' AND gender='{gender}' AND nationality='{nationality}' AND user_id='{self.userId}';"
+        results = db.execute_dql_commands(query)
+        x = list(results)
+        value = x[0][0]
+        # print(x)
+        print(value)
+        if value==0:
+            print("new passenger, trying to insert")
+            query = f"INSERT INTO passenger VALUES ({pass_id},'{name}', {age}, '{gender}','{nationality}','{conces_typ}',{self.userId});"
+            # print(query)
+            try:
+                db.execute_ddl_and_dml_commands(query)
+            except:
+                print('Error')
+                
+            print("Insert attempted")
+            query1 = f"SELECT COUNT(*) FROM passenger WHERE name='{name}' AND age={age} AND gender='{gender}' AND nationality='{nationality}' AND user_id={self.userId};"
+            results1 = db.execute_dql_commands(query1)
+            x1 = list(results1)
+            value1 = x1[0][0]
+            
+            if value1==1:
+                
+                # Show a message box to indicate successful login
+                messagebox.showinfo("Success", "Passenger registration successful.")
+                self.passenger_reg_frame.destroy()
+                self.main_page()
+            else:
+                print("unexpected error occurred in inserting")
+                messagebox.showinfo("Error", "Passenger registration failed, see terminal.")
+        else:
+            messagebox.showinfo("Failure", "Such a passenger is already registered!")
         
 def main():
     root=Tk()
