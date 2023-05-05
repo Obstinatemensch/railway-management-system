@@ -80,7 +80,7 @@ class RailwayManagementSystemGUI:
         self.master = master
         self.master.title("Railway Management System")
         self.isLoggedIn = True
-        self.userId = 66637
+        self.userId = 1111
         self.PNR_tobecancelled = None
         # self.isLoggedIn = False
         # self.userId = None
@@ -139,30 +139,32 @@ class RailwayManagementSystemGUI:
             btn_signup.config(state="disabled")
 
     def my_bookings(self):
-        q = "SELECT booking_id, fare, txn_id, user_id, booking_date FROM booking WHERE user_id=" + str(self.userId) + ";"
-        results = db.execute_dql_commands(q)
+        query = 'select p.pnr_no, b.fare, b.txn_id, pas.name, b.booking_date from booking as b natural join pass_tkt as p join passenger as pas ON p.pass_id = pas.pass_id where pas.user_id=' +str(self.userId) + ';'
+        # print(query)
+        results = db.execute_dql_commands(query)
         
         # Create a new window to display the results
         bookings_window = Toplevel(self.master)
         bookings_window.title("My Bookings")
         
         # Create a Treeview widget to display the query results
-        tree = ttk.Treeview(bookings_window, columns=("booking_id", "fare", "txn_id", "user_id", "booking_date"), show="headings")
-        tree.heading("booking_id", text="Booking ID")
-        tree.heading("fare", text="Fare")
+        tree = ttk.Treeview(bookings_window, columns=("pnr_no", "name", "txn_id", "fare", "booking_date"), show="headings")
+        
+        tree.heading("pnr_no", text="PNR No")
+        tree.heading("name", text="Name")
         tree.heading("txn_id", text="Transaction ID")
-        tree.heading("user_id", text="User ID")
+        tree.heading("fare", text="Fare")
         tree.heading("booking_date", text="Booking Date")
         
         # Insert the query results into the Treeview widget
         for row in results:
             # Convert the values to the desired format before inserting them into the Treeview widget
-            booking_id = str(row[0])
+            pnr_no = str(row[0])
             fare = str(row[1])
             txn_id = str(row[2])
-            user_id = str(row[3])
+            name = str(row[3])
             booking_date = row[4].strftime("%Y-%m-%d %H:%M:%S")
-            tree.insert("", "end", values=(booking_id, fare, txn_id, user_id, booking_date))
+            tree.insert("", "end", values=(pnr_no, name, txn_id, fare, booking_date))
         
         # Pack the Treeview widget and display the window
         tree.pack(fill="both", expand=True)
@@ -187,11 +189,6 @@ class RailwayManagementSystemGUI:
         self.destination_station_entry = Entry(self.input_frame)
         self.destination_station_entry.grid(row=1, column=1)
 
-        # Create a label and dropdown menu for the day of the week
-        # self.day_of_week_label = Label(self.input_frame, text="Date (DD-MM-YYYY):")
-        # self.day_of_week_label.grid(row=2, column=0)
-        # self.day_of_week_entry = Entry(self.input_frame)
-        # self.day_of_week_entry.grid(row=2, column=1)
         self.day_of_week_label = Label(self.input_frame, text="Date (DD-MM-YYYY):")
         self.day_of_week_label.grid(row=2, column=0)
 
@@ -305,7 +302,7 @@ class RailwayManagementSystemGUI:
                         row_list[i] = row_list[i].strftime("%H:%M")
                     elif row_list[i] is None:
                         row_list[i] = 'N/A'
-                #print(type(row_list[3]))
+
                 # Convert integer to binary and pad to 7 digits
                 binary = bin(row_list[3])[2:].zfill(7)
 
@@ -711,26 +708,22 @@ class RailwayManagementSystemGUI:
 
         # Create a frame to hold the input widgets
         self.input_frame = Frame(self.master)
-        self.input_frame.pack(side=LEFT, padx=10, pady=10)
-        self.train_list_label = Label(self.input_frame, text="Cancel Tickets:", font=("Helvetica", 20))
-        self.train_list_label.pack(padx=10, pady=10)
+        self.input_frame.pack(side=TOP, padx=10, pady=10)
+        self.train_list_label = Label(self.input_frame, text="   Cancel Tickets", font=("Helvetica Bold", 24))
+        self.train_list_label.pack(padx=50, pady=50)
         
         # Create a frame to hold the select to cancel pass widgets
         self.input_frameRT = Frame(self.master)
-        self.input_frameRT.pack(side=RIGHT, padx=50, pady=10)
+        self.input_frameRT.pack( padx=50, pady=50)
         
-        self.pnr_no_labelA= Label(self.input_frameRT, text="Select passengers to be cancelled:")
+        self.pnr_no_labelA= Label(self.input_frameRT, text="                   Select passengers\n                     to be cancelled:", font="Helvetica 14 bold")
         self.pnr_no_labelA.grid(row=0, column=3)
         self.toBeCancelled = Listbox(self.input_frameRT,selectmode='multiple',exportselection=0)
         self.toBeCancelled.grid(row=0, column=4)
         
-        
-
-        
-        self.pnr_no_label= Label(self.input_frameRT, text="PNR No:")
+        self.pnr_no_label= Label(self.input_frameRT, text="PNR No:", font="Helvetica 14 bold")
         self.pnr_no_label.grid(row=0, column=0)
-        # self.pnr_no_entry = Entry(self.input_frame)
-        # self.pnr_no_entry.grid(row=0, column=1)
+
         self.PNRtoBeCancelled = Listbox(self.input_frameRT,selectmode='single',exportselection=0)
         self.PNRtoBeCancelled.grid(row=0, column=1)
         
@@ -756,8 +749,10 @@ class RailwayManagementSystemGUI:
             ####
             if self.PNR_tobecancelled is None:
                 return
-            query=f'select distinct pass_id from booking natural join pass_tkt where pass_tkt."isConfirmed"=\'CNF\' and user_id={self.userId} and pnr_no={self.PNR_tobecancelled};'
-            # print(query)
+            
+            query=f'select distinct(p.pass_id), pas.name from booking as b natural join pass_tkt as p join passenger as pas ON p.pass_id = pas.pass_id where p."isConfirmed"=\'CNF\' and pas.user_id={self.userId} and pnr_no={self.PNR_tobecancelled};'
+            # query=f'select distinct pass_id from booking natural join pass_tkt where pass_tkt."isConfirmed"=\'CNF\' and user_id={self.userId} and pnr_no={self.PNR_tobecancelled};'
+            print(query)
             res=db.execute_dql_commands(query)
             if res is not None:
                 x=list(res)
@@ -767,27 +762,16 @@ class RailwayManagementSystemGUI:
                 self.btnNext.config(state="disabled")
             pass
         
-        self.btnNext = Button(self.input_frameRT,text="Next",command=execnext)
+        self.btnNext = Button(self.input_frameRT,text="Next", font="Helvetica 12 bold",command=execnext)
         
         self.btnNext.grid(row=2, column=2, columnspan=2, pady=10)
         
-        
-        # self.pass_label= Label(self.input_frame, text="Passenger IDs (comma-separated):")
-        # self.pass_label.grid(row=2, column=0)
-        # self.pass_entry = Entry(self.input_frame)
-        # self.pass_entry.grid(row=2, column=1)
-        
         # Create a button to execute the query
-        self.cancel_button = Button(self.input_frameRT, text="Cancel seats", command=self.cancel_seat)
+        self.cancel_button = Button(self.input_frameRT, text="Cancel seats", font="Helvetica 12 bold", command=self.cancel_seat)
         self.cancel_button.grid(row=5, column=2, columnspan=2, pady=10)
         
-        # self.result_label= Label(self.input_frame, text="Cancellation status:")
-        # self.result_label.grid(row=4, column=0)
-        # self.result_output = Entry(self.input_frame)
-        # self.result_output.grid(row=4, column=1)
-        
         #Button to go back to the home page
-        self.back_button = Button(self.input_frameRT, text="Go Back", command=lambda: (self.input_frame.destroy(),self.input_frameRT.destroy(), self.main_page()))
+        self.back_button = Button(self.input_frameRT, text="Go Back", font="Helvetica 12 bold", command=lambda: (self.input_frame.destroy(),self.input_frameRT.destroy(), self.main_page()))
         self.back_button.grid(row=6, column=2, columnspan=2, pady=10)
         
         
@@ -803,8 +787,6 @@ class RailwayManagementSystemGUI:
         numbers = [s.split(',')[0].strip('()') for s in selected_text_list]
         pass_ids = ','.join(numbers)
         # print(pass_ids)
-        
-        
         
         if not pnr_no or not usr_id or not pass_ids:
             messagebox.showerror("Error", "Please enter all required fields")
