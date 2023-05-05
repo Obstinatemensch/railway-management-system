@@ -208,7 +208,7 @@ class RailwayManagementSystemGUI:
         self.output_frame.pack(side=RIGHT, padx=10, pady=10)
 
         # Create a label for the output widget
-        self.train_list_label = Label(self.output_frame, text="Trains Between Stations:")
+        self.train_list_label = Label(self.output_frame, text="Trains Between Stations:", font=("Helvetica", 20))
         self.train_list_label.pack()
 
         # Create a button to go back to the home page
@@ -489,20 +489,23 @@ class RailwayManagementSystemGUI:
         self.input_frameRT1.pack(side=RIGHT, padx=50, pady=10)
 
         # Create labels and entry boxes for all the required information
+        self.name_label= Label(self.input_frame, text="Reserve Tickets", font=("Helvetica", 20))
+        self.name_label.grid(row=0, column=1)
+        
         self.tno_label = Label(self.input_frame, text="Train Number:")
-        self.tno_label.grid(row=0, column=0)
+        self.tno_label.grid(row=1, column=0)
         self.tno_entry = Entry(self.input_frame)
-        self.tno_entry.grid(row=0, column=1)
+        self.tno_entry.grid(row=1, column=1)
 
         self.src_label = Label(self.input_frame, text="Source Station Code:")
-        self.src_label.grid(row=1, column=0)
+        self.src_label.grid(row=2, column=0)
         self.src_entry = Entry(self.input_frame)
-        self.src_entry.grid(row=1, column=1)
+        self.src_entry.grid(row=2, column=1)
 
         self.dst_label = Label(self.input_frame, text="Destination Station Code:")
-        self.dst_label.grid(row=2, column=0)
+        self.dst_label.grid(row=3, column=0)
         self.dst_entry = Entry(self.input_frame)
-        self.dst_entry.grid(row=2, column=1)
+        self.dst_entry.grid(row=3, column=1)
         
         # self.doj_label= Label(self.input_frame, text="Date of journey (DD-MM-YYYY):")
         # self.doj_label.grid(row=3, column=0)
@@ -510,27 +513,27 @@ class RailwayManagementSystemGUI:
         # self.doj_entry.grid(row=3, column=1)
         
         self.doj_label = Label(self.input_frame, text="Date of journey (DD-MM-YYYY):")
-        self.doj_label.grid(row=3, column=0)
+        self.doj_label.grid(row=4, column=0)
 
         # Create a DateEntry widget for selecting the date of journey
         self.doj_entry = DateEntry(self.input_frame, date_pattern="dd-mm-yyyy")
-        self.doj_entry.grid(row=3, column=1)
+        self.doj_entry.grid(row=4, column=1)
 
         # Create a label and dropdown menu for the day of the week
         self.ctyp_entry_label = Label(self.input_frame, text="Coach Type:")
-        self.ctyp_entry_label.grid(row=4, column=0)
+        self.ctyp_entry_label.grid(row=5, column=0)
         self.ctyp_entry = StringVar()
         self.ctyp_entry_rolldown = OptionMenu(self.input_frame, self.ctyp_entry, *["CC", "3AC"])
-        self.ctyp_entry_rolldown.grid(row=4, column=1)
+        self.ctyp_entry_rolldown.grid(row=5, column=1)
         
-        self.pass_label= Label(self.input_frame, text="Passenger IDs (comma-separated):")
-        self.pass_label.grid(row=7, column=0)
-        self.pass_entry = Entry(self.input_frame)
-        self.pass_entry.grid(row=7, column=1)
-        self.pass_entry.config(state="disabled")
+        # self.pass_label= Label(self.input_frame, text="Passenger IDs (comma-separated):")
+        # self.pass_label.grid(row=7, column=0)
+        # self.pass_entry = Entry(self.input_frame)
+        # self.pass_entry.grid(row=7, column=1)
+        # self.pass_entry.config(state="disabled")
         
         self.pass_sel_label= Label(self.input_frameRT1, text="Select passengers:")
-        self.pass_sel_label.grid(row=7, column=0)
+        self.pass_sel_label.grid(row=1, column=0)
         self.toBeBooked = Listbox(self.input_frameRT1,selectmode='multiple',exportselection=0)
         self.toBeBooked.grid(row=0, column=1)
         
@@ -547,10 +550,10 @@ class RailwayManagementSystemGUI:
         self.reserve_button = Button(self.input_frame, text="Reserve Seats", command=self.reserve_seat)
         self.reserve_button.grid(row=8, column=0, columnspan=2, pady=10)
         
-        self.result_label= Label(self.input_frame, text="PNR No:")
-        self.result_label.grid(row=9, column=0)
-        self.result_output = Entry(self.input_frame)
-        self.result_output.grid(row=9, column=1)
+        # self.result_label= Label(self.input_frame, text="PNR No:")
+        # self.result_label.grid(row=9, column=0)
+        # self.result_output = Entry(self.input_frame)
+        # self.result_output.grid(row=9, column=1)
         
         #Button to go back to the home page
         self.reserve_button = Button(self.input_frame, text="Go Back", command=lambda: (self.input_frame.destroy(),self.input_frameRT1.destroy(),self.main_page()))
@@ -612,6 +615,13 @@ class RailwayManagementSystemGUI:
             res=db.execute_dql_commands(query)
             x=list(res)
             pnrno=x[0][0]
+            
+            query = f"SELECT pass_id,coach_no,seat_no FROM pass_tkt WHERE pnr_no={pnrno} AND \"isConfirmed\"='CNF';"
+            res=db.execute_dql_commands(query)
+            x=list(res)
+            print(x)
+            
+            
             ticket_filename = f"ticket_{nextval}.pdf"
             c = canvas.Canvas(ticket_filename)
             c.drawString(100, 750, f"PNR NO: {pnrno}")
@@ -623,6 +633,7 @@ class RailwayManagementSystemGUI:
             c.drawString(100, 450, f"User ID: {usr_id}")
             c.drawString(100, 400, f"Transaction ID: {trxn_id}")
             c.drawString(100, 350, f"Passenger IDs: {pass_ids}")
+            c.drawString(100, 300, f"(PID, Coach num, Seat num): {x}")
             c.save()
             messagebox.showinfo("Success", f"Ticket details saved to {ticket_filename}")
             if platform.system() == "Windows":
@@ -643,6 +654,8 @@ class RailwayManagementSystemGUI:
         # Create a frame to hold the input widgets
         self.input_frame = Frame(self.master)
         self.input_frame.pack(side=LEFT, padx=10, pady=10)
+        self.train_list_label = Label(self.input_frame, text="Cancel Tickets:", font=("Helvetica", 20))
+        self.train_list_label.pack(padx=10, pady=10)
         
         # Create a frame to hold the select to cancel pass widgets
         self.input_frameRT = Frame(self.master)
@@ -671,7 +684,8 @@ class RailwayManagementSystemGUI:
             # print(x)
             for i,eachEntry in enumerate(x):
                 self.PNRtoBeCancelled.insert(i,eachEntry)
-        
+                
+        self.btnNext = None
         def execnext():
             self.PNR_tobecancelled = None
             
@@ -682,6 +696,8 @@ class RailwayManagementSystemGUI:
             self.PNR_tobecancelled = ','.join(numbers)
             # print(self.PNR_tobecancelled)
             ####
+            if self.PNR_tobecancelled is None:
+                return
             query=f'select distinct pass_id from booking natural join pass_tkt where pass_tkt."isConfirmed"=\'CNF\' and user_id={self.userId} and pnr_no={self.PNR_tobecancelled};'
             # print(query)
             res=db.execute_dql_commands(query)
@@ -690,9 +706,11 @@ class RailwayManagementSystemGUI:
                 # print(x)
                 for i,eachEntry in enumerate(x):
                     self.toBeCancelled.insert(i,eachEntry)
+                self.btnNext.config(state="disabled")
             pass
         
         self.btnNext = Button(self.input_frameRT,text="Next",command=execnext)
+        
         self.btnNext.grid(row=2, column=2, columnspan=2, pady=10)
         
         
@@ -702,8 +720,8 @@ class RailwayManagementSystemGUI:
         # self.pass_entry.grid(row=2, column=1)
         
         # Create a button to execute the query
-        self.cancel_button = Button(self.input_frame, text="Cancel seats", command=self.cancel_seat)
-        self.cancel_button.grid(row=5, column=3, columnspan=2, pady=20)
+        self.cancel_button = Button(self.input_frameRT, text="Cancel seats", command=self.cancel_seat)
+        self.cancel_button.grid(row=5, column=2, columnspan=2, pady=10)
         
         # self.result_label= Label(self.input_frame, text="Cancellation status:")
         # self.result_label.grid(row=4, column=0)
@@ -711,8 +729,8 @@ class RailwayManagementSystemGUI:
         # self.result_output.grid(row=4, column=1)
         
         #Button to go back to the home page
-        self.reserve_button = Button(self.input_frame, text="Go Back", command=lambda: (self.input_frame.destroy(),self.input_frameRT.destroy(), self.main_page()))
-        self.reserve_button.grid(row=5, column=0, columnspan=2, pady=10)
+        self.back_button = Button(self.input_frameRT, text="Go Back", command=lambda: (self.input_frame.destroy(),self.input_frameRT.destroy(), self.main_page()))
+        self.back_button.grid(row=6, column=2, columnspan=2, pady=10)
         
         
     def cancel_seat(self):
@@ -763,44 +781,47 @@ class RailwayManagementSystemGUI:
 
         # Create a frame to hold the passenger registration
         self.passenger_reg_frame = Frame(self.master)
-        self.passenger_reg_frame.pack(padx=10, pady=10)
+        self.passenger_reg_frame.pack(side=LEFT,padx=10, pady=10)
+        
+        self.name_label= Label(self.passenger_reg_frame, text="Passenger Registration", font=("Helvetica", 20))
+        self.name_label.grid(row=0, column=1)
         
         self.name_label= Label(self.passenger_reg_frame, text="Name:")
-        self.name_label.grid(row=0, column=0)
+        self.name_label.grid(row=1, column=0)
         self.name_entry = Entry(self.passenger_reg_frame)
-        self.name_entry.grid(row=0, column=1)
+        self.name_entry.grid(row=1, column=1)
         
         self.age_label= Label(self.passenger_reg_frame, text="Age:")
-        self.age_label.grid(row=1, column=0)
+        self.age_label.grid(row=2, column=0)
         self.age_entry = Entry(self.passenger_reg_frame)
-        self.age_entry.grid(row=1, column=1)
+        self.age_entry.grid(row=2, column=1)
         
         # Create a label and dropdown menu for choosing the gender
         self.gender_label = Label(self.passenger_reg_frame, text="Gender:")
-        self.gender_label.grid(row=2, column=0)
+        self.gender_label.grid(row=3, column=0)
         self.gender = StringVar()
         self.gender_rolldown = OptionMenu(self.passenger_reg_frame, self.gender, *["M", "F","Other"])
-        self.gender_rolldown.grid(row=2, column=1)
+        self.gender_rolldown.grid(row=3, column=1)
         
         self.nationality_label= Label(self.passenger_reg_frame, text="Nationality:")
-        self.nationality_label.grid(row=3, column=0)
+        self.nationality_label.grid(row=4, column=0)
         self.nationality_entry = Entry(self.passenger_reg_frame)
-        self.nationality_entry.grid(row=3, column=1)
+        self.nationality_entry.grid(row=4, column=1)
         
         # Create a label and dropdown menu for choosing the concession type
         self.conces_typ_label = Label(self.passenger_reg_frame, text="Concession Type:")
-        self.conces_typ_label.grid(row=4, column=0)
+        self.conces_typ_label.grid(row=5, column=0)
         self.conces_typ = StringVar()
         self.conces_typ_rolldown = OptionMenu(self.passenger_reg_frame, self.conces_typ, *["senior_ctzn", "armed_forces","student","other"])
-        self.conces_typ_rolldown.grid(row=4, column=1)
+        self.conces_typ_rolldown.grid(row=5, column=1)
         
         # Create a button to execute the query
         self.create_user_button = Button(self.passenger_reg_frame, text="Create User", command=self.passenger_registration)
-        self.create_user_button.grid(row=5, column=0, columnspan=2, pady=10)
+        self.create_user_button.grid(row=6, column=0, columnspan=2, pady=10)
         
         #Button to go back to the home page
         self.reserve_button = Button(self.passenger_reg_frame, text="Go Back", command=lambda: (self.passenger_reg_frame.destroy(), self.main_page()))
-        self.reserve_button.grid(row=6, column=0, columnspan=2, pady=10)
+        self.reserve_button.grid(row=7, column=0, columnspan=2, pady=10)
             
     def passenger_registration(self):
         name = self.name_entry.get()
