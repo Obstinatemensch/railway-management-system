@@ -611,29 +611,87 @@ class RailwayManagementSystemGUI:
         if(prevval!=nextval):
             messagebox.showinfo("Success", "Reservation successful.")
             # Generate a PDF file of the ticket details
-            query = "SELECT * FROM pass_tkt ORDER BY src_date DESC LIMIT 1 ;"
+            query = "SELECT * FROM pass_tkt ORDER BY pnr_no DESC LIMIT 1 ;"     # Major bug here fixed
             res=db.execute_dql_commands(query)
             x=list(res)
             pnrno=x[0][0]
-            
-            query = f"SELECT pass_id,coach_no,seat_no FROM pass_tkt WHERE pnr_no={pnrno} AND \"isConfirmed\"='CNF';"
+            query = f"SELECT * FROM station WHERE stn_id=\'{src}\' OR stn_id=\'{dst}\';"     # Major bug here fixed
+            print(".\n",query)
             res=db.execute_dql_commands(query)
             x=list(res)
-            print(x)
+            print(x,".")
             
+            stnNameDict=dict()
+            for xi in x:
+                stnNameDict[xi[0]]=xi[1]
+            
+            
+            query = f"SELECT pass_id,coach_no,seat_no FROM pass_tkt WHERE pnr_no={pnrno} AND \"isConfirmed\"='CNF';"
+            # print(".\n",query)
+            res=db.execute_dql_commands(query)
+            X=list(res)
+            # print(x)
+            # print(".")
+            userPassDict = dict()
+            query = f"SELECT * FROM passenger WHERE user_id = {self.userId};;"
+            # print(".\n",query)
+            res=db.execute_dql_commands(query)
+            x1=list(res)
+            for xi in x1:
+                userPassDict[xi[0]]=[xi[1],xi[2],xi[3]]
             
             ticket_filename = f"ticket_{nextval}.pdf"
             c = canvas.Canvas(ticket_filename)
+            c.setFont("Helvetica-Bold", 20)
+            c.drawString(150, 800, "Electronic Reservation Slip (ERS)")
+            c.setFont("Helvetica", 12)
+            # c.drawString(250, 780, "---------")
+            c.drawString(100, 730, f"Booked From")
+            c.drawString(100, 710, f"{stnNameDict[src]} ({src})")
+            c.drawString(400, 730, f"Booked To")
+            c.drawString(400, 710, f"{stnNameDict[dst]} ({dst})")
             c.drawString(100, 750, f"PNR NO: {pnrno}")
-            c.drawString(100, 700, f"Train Number: {tno}")
-            c.drawString(100, 650, f"Source Station: {src}")
-            c.drawString(100, 600, f"Destination Station: {dst}")
-            c.drawString(100, 550, f"Coach Type: {c_typ}")
-            c.drawString(100, 500, f"Date of Journey: {doj.strftime('%d-%m-%Y')}")
-            c.drawString(100, 450, f"User ID: {usr_id}")
-            c.drawString(100, 400, f"Transaction ID: {trxn_id}")
-            c.drawString(100, 350, f"Passenger IDs: {pass_ids}")
-            c.drawString(100, 300, f"(PID, Coach num, Seat num): {x}")
+            c.drawString(100, 730, f"Train Number: {tno}")
+            # c.drawString(100, 690, f"Destination Station: {dst}")
+            c.drawString(100, 670, f"Coach Type: {c_typ}")
+            c.drawString(100, 650, f"Date of Journey: {doj.strftime('%d-%m-%Y')}")
+            c.drawString(100, 630, f"User ID: {usr_id}")
+            c.drawString(100, 610, f"Transaction ID: {trxn_id}")
+            # c.drawString(100, 590, f"Passenger IDs: {pass_ids}")
+            x = 100
+            y = 570
+            tab_width = 80
+            c.setFont("Helvetica-Bold", 13)
+            c.drawString(x, y, " Pid ")
+            x += tab_width*0.75
+            c.drawString(x, y, " Name ")
+            x += tab_width*1.2
+            c.drawString(x, y, " Age ")
+            x += tab_width*0.65
+            c.drawString(x, y, " Gender ")
+            x += tab_width
+            c.drawString(x, y, " Coach num ")
+            x += tab_width
+            c.drawString(x, y, " Seat num ")
+            
+            c.setFont("Helvetica", 12)
+            for i,xi in enumerate(X):
+                pd,cn,sn=xi
+                x = 100
+                y = (550-20*i)
+                
+                c.drawString(x, y, f" {pd} ")
+                x += tab_width*0.75
+                c.drawString(x, y, f" {userPassDict[pd][0]} ")
+                x += tab_width*1.2
+                c.drawString(x, y, f" {userPassDict[pd][1]} ")
+                x += tab_width*0.65
+                c.drawString(x, y, f" {userPassDict[pd][2]} ")
+                x += tab_width
+                c.drawString(x, y, f" {cn} ")
+                x += tab_width
+                c.drawString(x, y, f" {sn} ")
+                
             c.save()
             messagebox.showinfo("Success", f"Ticket details saved to {ticket_filename}")
             if platform.system() == "Windows":
