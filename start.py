@@ -323,7 +323,7 @@ class RailwayManagementSystemGUI:
 
                 # Create a new window for entering the coach type
                 popup_window = Toplevel(self.master)
-                popup_window.title("Enter Coach Type")
+                popup_window.title("Train Details")
                 popup_window.geometry("500x450")
 
                 # Create label and dropdown menu for the coach type
@@ -337,10 +337,14 @@ class RailwayManagementSystemGUI:
                 # Create a button to execute the query
                 button = Button(popup_window, text="Check Availability", command=lambda: execute_query(train_num, source_station, dest_station, self.day_of_week_entry.get(), coach_var.get(), popup_window))
                 button.pack()
+                
+                # coach_label = Label(popup_window, text="Route:")
+                # coach_label.pack()
                 # Create a button to execute the query
-                self.tv1 = ttk.Treeview(popup_window, columns=(0), show='headings', height=10)
+                self.tv1 = ttk.Treeview(popup_window, columns=(0,1), show='headings', height=10)
                 self.tv1.pack(pady=100)
-                self.tv1.heading(0, text='Route')
+                self.tv1.heading(0, text='Station code')
+                self.tv1.heading(1, text='Station name')
                 findstn1(train_num, source_station, dest_station)
         
         def findstn1(train_num, source_station, dest_station):
@@ -360,7 +364,15 @@ class RailwayManagementSystemGUI:
             for row in results:
                 x=str(row[0])
                 # print(x)
-                self.tv1.insert("", "end", values=(x,))
+                query = f"SELECT station_name from station where stn_id=\'{x}\';"
+                # print("query=",query)
+                results = db.execute_dql_commands(query)
+                results=list(results)
+                # print("results[0]=",results[0])
+                
+                y=str(results[0][0])
+                # print("y=",y)
+                self.tv1.insert("", "end", values=(x,y,))
         
         
         def execute_query(train_num, source_station, dest_station, date, coach_type, popup_window):
