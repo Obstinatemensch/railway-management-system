@@ -125,6 +125,10 @@ class RailwayManagementSystemGUI:
         btn_my = Button(self.main_menu_frame, text="My Bookings", font=("Helvetica", 16), command=self.my_bookings)
         btn_my.pack(pady=10)
 
+        #Button to add a stnbtw page
+        btn_stnbtw = Button(self.main_menu_frame, text="Station Between", font=("Helvetica", 16), command=self.station_btw)
+        btn_stnbtw.pack(pady=10)
+
         # disabling the button reserve_page when not logged in
         if not self.isLoggedIn:
             btn_reserve.config(state="disabled")
@@ -137,6 +141,77 @@ class RailwayManagementSystemGUI:
         else:
             btn_login.config(state="disabled")
             btn_signup.config(state="disabled")
+
+    def station_btw(self):
+        # Clear the main menu frame
+        self.main_menu_frame.destroy()
+
+        # Create a frame to hold the input widgets
+        self.input_frame = Frame(self.master)
+        self.input_frame.pack(side=LEFT, padx=10, pady=10)
+
+        # Create labels and entry boxes for the source and destination stations
+        self.srce_station_label = Label(self.input_frame, text="Start Station:")
+        self.srce_station_label.grid(row=0, column=0)
+        self.srce_station_entry = Entry(self.input_frame)
+        self.srce_station_entry.grid(row=0, column=1)
+
+        self.dest_station_label = Label(self.input_frame, text="End Station:")
+        self.dest_station_label.grid(row=1, column=0)
+        self.dest_station_entry = Entry(self.input_frame)
+        self.dest_station_entry.grid(row=1, column=1)
+
+        self.tno_label = Label(self.input_frame, text="Train No:")
+        self.tno_label.grid(row=2, column=0)
+        self.tno_entry = Entry(self.input_frame)
+        self.tno_entry.grid(row=2, column=1)
+
+        # Create a button to execute the query
+        self.execute_button = Button(self.input_frame, text="Find Stations", command=self.findstn)
+        self.execute_button.grid(row=3, column=0, columnspan=2, pady=10)
+
+        # Create a frame to hold the output widget
+        self.output_frame = Frame(self.master)
+        self.output_frame.pack(side=RIGHT, padx=10, pady=10)
+
+        # Create a label for the output widget
+        self.train_list_label = Label(self.output_frame, text="Trains Between Stations:", font=("Helvetica", 20))
+        self.train_list_label.pack()
+
+        # Create a button to go back to the home page
+        self.reserve_button = Button(self.input_frame, text="Go Back", command=lambda: (self.input_frame.destroy(),self.output_frame.destroy(), self.main_page()))
+        self.reserve_button.grid(row=4, column=0, columnspan=2, pady=10)
+
+        # Create a Treeview widget for the output
+        self.tv = ttk.Treeview(self.output_frame, columns=(0), show='headings', height=5)
+        self.tv.pack()
+        self.tv.heading(0, text='Stations')
+
+    def findstn(self):
+        # Construct the query string
+        query = f"SELECT station_between({self.tno_entry.get()}, '{self.srce_station_entry.get()}', '{self.dest_station_entry.get()}');"
+
+        # Execute the query and fetch the results
+        results = db.execute_dql_commands(query)
+        # print(results)
+        # row = results[0]
+
+        # Clear any existing data from the Treeview widget
+        for record in self.tv.get_children():
+            self.tv.delete(record)
+
+        # Insert the row into the Treeview widget
+        for row in results:
+            x=str(row[0])
+            # print(x)
+            self.tv.insert("", "end", values=(x,))
+
+        # # Disable the input widgets and execute button
+        # self.srce_station_entry.config(state="disabled")
+        # self.dest_station_entry.config(state="disabled")
+        # self.tno_entry.config(state="disabled")
+        # self.execute_button.config(state="disabled")
+
 
     def my_bookings(self):
         query = 'select p.pnr_no, b.fare, b.txn_id, pas.name, b.booking_date from booking as b natural join pass_tkt as p join passenger as pas ON p.pass_id = pas.pass_id where pas.user_id=' +str(self.userId) + ' ORDER BY b.booking_date;'
@@ -213,17 +288,31 @@ class RailwayManagementSystemGUI:
         self.reserve_button.grid(row=4, column=0, columnspan=2, pady=10)
 
         # Create a Treeview widget for the output
-        self.train_treeview = ttk.Treeview(self.output_frame, columns=(0, 1, 2, 3, 4, 5,6,7,8), show='headings', height=15)
-        self.train_treeview.pack()
+        self.train_treeview = ttk.Treeview(self.output_frame, columns=(0, 1, 2, 3, 4, 5, 6, 7, 8), show='headings', height=15)
+        self.train_treeview.pack(fill='both', expand=True)
+
+        # Configure the column headings and widths
         self.train_treeview.heading(0, text='Train Number')
-        self.train_treeview.heading(3, text='Days of week')
+        self.train_treeview.column(0, width=100)
         self.train_treeview.heading(1, text='Source Station')
+        self.train_treeview.column(1, width=150)
         self.train_treeview.heading(2, text='Destination Station')
+        self.train_treeview.column(2, width=150)
+        self.train_treeview.heading(3, text='Days of Week')
+        self.train_treeview.column(3, width=125)
         self.train_treeview.heading(4, text='Source Arrival Time')
+        self.train_treeview.column(4, width=150)
         self.train_treeview.heading(5, text='Source Dept Time')
+        self.train_treeview.column(5, width=150)
         self.train_treeview.heading(6, text='Dest Arrival Time')
+        self.train_treeview.column(6, width=150)
         self.train_treeview.heading(7, text='Dest Dept Time')
+        self.train_treeview.column(7, width=150)
         self.train_treeview.heading(8, text='Day Number')
+        self.train_treeview.column(8, width=100)
+
+        # Configure the font size
+        # self.train_treeview.configure(font=('Arial', 10))
 
         def on_train_click(event):
             selection = self.train_treeview.selection()
@@ -452,10 +541,10 @@ class RailwayManagementSystemGUI:
         value = x[0][0]
         # print(x)
         if value==0:
-            print("not already existent username, trying to insert")
+            # print("not already existent username, trying to insert")
             query = f"INSERT INTO new_user VALUES ({username},'{name}','{email}',{phno},{aadhar},'{address}','{dob}','{password}');"
             results = db.execute_ddl_and_dml_commands(query)
-            print("insert attempted")
+            # print("insert attempted")
             
             query1 = f"SELECT COUNT(*) FROM new_user WHERE user_id={username}"
             results1 = db.execute_dql_commands(query1)
@@ -569,10 +658,10 @@ class RailwayManagementSystemGUI:
         ###
         pass_ids = None
         selected_text_list = [self.toBeBooked.get(i) for i in self.toBeBooked.curselection()]
-        print(selected_text_list)
+        # print(selected_text_list)
         numbers = [s.split(',')[0].strip('()') for s in selected_text_list]
         pass_ids = ','.join(numbers)
-        print(pass_ids)
+        # print(pass_ids)
         # for eachsel in selected_text_list:
         #     eachsel=','.split(eachsel)
         #     print(eachsel)
@@ -603,8 +692,8 @@ class RailwayManagementSystemGUI:
         nextres=db.execute_dql_commands(querynew)
         nextx=list(nextres)
         nextval=nextx[0][0]
-        print(prevval)
-        print(nextval)
+        # print(prevval)
+        # print(nextval)
         if(prevval!=nextval):
             messagebox.showinfo("Success", "Reservation successful.")
             # Generate a PDF file of the ticket details
@@ -751,7 +840,7 @@ class RailwayManagementSystemGUI:
         self.PNRtoBeCancelled.grid(row=0, column=1)
         
         query=f'SELECT distinct pnr_no from booking natural join pass_tkt where pass_tkt."isConfirmed"=\'CNF\' and user_id={self.userId};'
-        print(query)
+        # print(query)
         res=db.execute_dql_commands(query)
         if res is not None:
             x=list(res)
@@ -760,6 +849,7 @@ class RailwayManagementSystemGUI:
                 self.PNRtoBeCancelled.insert(i,eachEntry)
                 
         self.btnNext = None
+        self.cancel_button=None
         def execnext():
             self.PNR_tobecancelled = None
             
@@ -775,7 +865,7 @@ class RailwayManagementSystemGUI:
             
             query=f'select distinct(p.pass_id), pas.name from booking as b natural join pass_tkt as p join passenger as pas ON p.pass_id = pas.pass_id where p."isConfirmed"=\'CNF\' and pas.user_id={self.userId} and pnr_no={self.PNR_tobecancelled};'
             # query=f'select distinct pass_id from booking natural join pass_tkt where pass_tkt."isConfirmed"=\'CNF\' and user_id={self.userId} and pnr_no={self.PNR_tobecancelled};'
-            print(query)
+            # print(query)
             res=db.execute_dql_commands(query)
             if res is not None:
                 x=list(res)
@@ -783,6 +873,7 @@ class RailwayManagementSystemGUI:
                 for i,eachEntry in enumerate(x):
                     self.toBeCancelled.insert(i,eachEntry)
                 self.btnNext.config(state="disabled")
+                self.cancel_button.config(state="active")
             pass
         
         self.btnNext = Button(self.input_frameRT,text="Next", font="Helvetica 12 bold",command=execnext)
@@ -792,7 +883,8 @@ class RailwayManagementSystemGUI:
         # Create a button to execute the query
         self.cancel_button = Button(self.input_frameRT, text="Cancel seats", font="Helvetica 12 bold", command=self.cancel_seat)
         self.cancel_button.grid(row=5, column=2, columnspan=2, pady=10)
-        
+        self.cancel_button.config(state="disabled")
+
         #Button to go back to the home page
         self.back_button = Button(self.input_frameRT, text="Go Back", font="Helvetica 12 bold", command=lambda: (self.input_frame.destroy(),self.input_frameRT.destroy(), self.main_page()))
         self.back_button.grid(row=6, column=2, columnspan=2, pady=10)
@@ -832,6 +924,7 @@ class RailwayManagementSystemGUI:
         nextval=nextx[0][0]
         # print(prevval)
         # print(nextval)
+        self.cancel_button.config(state="disabled")
         if(prevx!=nextx):
             messagebox.showinfo("Success", "Cancelation successful.")
         else:
