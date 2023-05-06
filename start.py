@@ -54,7 +54,7 @@ class PostgresqlDB:
                 result = connection.execute(text(stmnt))
             trans.commit()
             connection.close()
-            print('Command executed successfully.')
+            # print('Command executed successfully.')
         except Exception as err:
             trans.rollback()
             print(f'Failed to execute ddl and dml commands -- {err}')
@@ -697,6 +697,10 @@ class RailwayManagementSystemGUI:
         if(prevval!=nextval):
             messagebox.showinfo("Success", "Reservation successful.")
             # Generate a PDF file of the ticket details
+            query = f"SELECT train_name FROM train WHERE train_no={tno} ;"
+            res=db.execute_dql_commands(query)
+            x=list(res)
+            TRainName = x[0][0]
             query = f"SELECT fare FROM booking WHERE txn_id={trxn_id} ;"
             res=db.execute_dql_commands(query)
             x=list(res)
@@ -752,7 +756,7 @@ class RailwayManagementSystemGUI:
             
             c.drawString(400, 710, f"{stnNameDict[dst]} ({dst})")
             c.drawString(100, 670, f"PNR NO: {pnrno}")
-            c.drawString(100, 650, f"Train Number: {tno}")
+            c.drawString(100, 650, f"Train: [{tno}] {TRainName}")
             # c.drawString(100, 690, f"Destination Station: {dst}")
             c.drawString(100, 630, f"Coach Type: {c_typ}")
             c.drawString(100, 610, f"Date of Journey: {doj.strftime('%d-%m-%Y')}")
@@ -773,7 +777,7 @@ class RailwayManagementSystemGUI:
             x += tab_width
             c.drawString(x, y, " Coach num ")
             x += tab_width
-            c.drawString(x, y, " Seat num ")
+            c.drawString(x, y, " Seat ")
             
             c.setFont("Helvetica", 12)
             curY = y
@@ -793,7 +797,22 @@ class RailwayManagementSystemGUI:
                 x += tab_width
                 c.drawString(x, y, f" {cn} ")
                 x += tab_width
-                c.drawString(x, y, f" {sn} ")
+                SEAT_TYPE = None
+                if c_typ=='CC':
+                    if sn==2:
+                        SEAT_TYPE="Middle"
+                    elif sn==3:
+                        SEAT_TYPE="Aisle"
+                    else:
+                        SEAT_TYPE="Window"
+                else:
+                    if sn==2:
+                        SEAT_TYPE="Middle"
+                    elif sn==3:
+                        SEAT_TYPE="Upper"
+                    else:
+                        SEAT_TYPE="Lower"
+                c.drawString(x, y, f" {sn} / {SEAT_TYPE}")
             
             # FAre
             y = curY
@@ -1001,9 +1020,9 @@ class RailwayManagementSystemGUI:
         x = list(results)
         value = x[0][0]
         # print(x)
-        print(value)
+        # print(value)
         if value==0:
-            print("new passenger, trying to insert")
+            # print("new passenger, trying to insert")
             query = f"INSERT INTO passenger VALUES ({pass_id},'{name}', {age}, '{gender}','{nationality}','{conces_typ}',{self.userId});"
             # print(query)
             try:
@@ -1011,7 +1030,7 @@ class RailwayManagementSystemGUI:
             except:
                 print('Error')
                 
-            print("Insert attempted")
+            # print("Insert attempted")
             query1 = f"SELECT COUNT(*) FROM passenger WHERE name='{name}' AND age={age} AND gender='{gender}' AND nationality='{nationality}' AND user_id={self.userId};"
             results1 = db.execute_dql_commands(query1)
             x1 = list(results1)
