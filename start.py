@@ -80,10 +80,10 @@ class RailwayManagementSystemGUI:
         self.master = master
         self.master.title("Railway Management System")
         self.isLoggedIn = True
-        self.userId = 66637
-        self.PNR_tobecancelled = None
-        # self.isLoggedIn = False
-        # self.userId = None
+        # self.userId = 66637
+        # self.PNR_tobecancelled = None
+        self.isLoggedIn = False
+        self.userId = None
         self.main_page()
     
     def main_page(self):
@@ -126,7 +126,7 @@ class RailwayManagementSystemGUI:
         btn_my.pack(pady=10)
 
         #Button to add a stnbtw page
-        btn_stnbtw = Button(self.main_menu_frame, text="Station Between", font=("Helvetica", 16), command=self.station_btw)
+        btn_stnbtw = Button(self.main_menu_frame, text="Find Route", font=("Helvetica", 16), command=self.station_btw)
         btn_stnbtw.pack(pady=10)
 
         # disabling the button reserve_page when not logged in
@@ -175,7 +175,7 @@ class RailwayManagementSystemGUI:
         self.output_frame.pack(side=RIGHT, padx=10, pady=10)
 
         # Create a label for the output widget
-        self.train_list_label = Label(self.output_frame, text="Trains Between Stations:", font=("Helvetica", 20))
+        self.train_list_label = Label(self.output_frame, text="Train Route:", font=("Helvetica", 20))
         self.train_list_label.pack()
 
         # Create a button to go back to the home page
@@ -324,7 +324,7 @@ class RailwayManagementSystemGUI:
                 # Create a new window for entering the coach type
                 popup_window = Toplevel(self.master)
                 popup_window.title("Enter Coach Type")
-                popup_window.geometry("300x150")
+                popup_window.geometry("500x450")
 
                 # Create label and dropdown menu for the coach type
                 coach_label = Label(popup_window, text="Select coach type:")
@@ -337,7 +337,32 @@ class RailwayManagementSystemGUI:
                 # Create a button to execute the query
                 button = Button(popup_window, text="Check Availability", command=lambda: execute_query(train_num, source_station, dest_station, self.day_of_week_entry.get(), coach_var.get(), popup_window))
                 button.pack()
+                # Create a button to execute the query
+                self.tv1 = ttk.Treeview(popup_window, columns=(0), show='headings', height=10)
+                self.tv1.pack(pady=100)
+                self.tv1.heading(0, text='Route')
+                findstn1(train_num, source_station, dest_station)
+        
+        def findstn1(train_num, source_station, dest_station):
+            # Construct the query string
+            query = f"SELECT station_between({train_num}, '{source_station}', '{dest_station}');"
 
+            # Execute the query and fetch the results
+            results = db.execute_dql_commands(query)
+            # print(results)
+            # row = results[0]
+
+            # Clear any existing data from the Treeview widget
+            for record in self.tv1.get_children():
+                self.tv1.delete(record)
+
+            # Insert the row into the Treeview widget
+            for row in results:
+                x=str(row[0])
+                # print(x)
+                self.tv1.insert("", "end", values=(x,))
+        
+        
         def execute_query(train_num, source_station, dest_station, date, coach_type, popup_window):
             try:
                 date = datetime.datetime.strptime(date, "%d-%m-%Y")
@@ -1014,7 +1039,9 @@ class RailwayManagementSystemGUI:
         if not name or not age or not gender or not nationality or not conces_typ or not pass_id:
             messagebox.showerror("Error", "Please enter all required fields")
             return
-        
+        if conces_typ=='senior_ctzn' and int(age)<=60:
+            messagebox.showerror("Error", f"Passenger with age {age} is ineligible for senior_ctzn concession.")
+            return
         query = f"SELECT COUNT(*) FROM passenger WHERE name='{name}' AND age='{age}' AND gender='{gender}' AND nationality='{nationality}' AND user_id='{self.userId}';"
         results = db.execute_dql_commands(query)
         x = list(results)
