@@ -128,6 +128,10 @@ class RailwayManagementSystemGUI:
         #Button to add a stnbtw page
         btn_stnbtw = Button(self.main_menu_frame, text="Find Route", font=("Helvetica", 16), command=self.station_btw)
         btn_stnbtw.pack(pady=10)
+        
+        #Button to add a stnbtw page
+        btn_pnr = Button(self.main_menu_frame, text="PNR Enquiry", font=("Helvetica", 16), command=self.pnrenquiry)
+        btn_pnr.pack(pady=10)
 
         # disabling the button reserve_page when not logged in
         if not self.isLoggedIn:
@@ -160,26 +164,53 @@ class RailwayManagementSystemGUI:
         self.execute_button = Button(self.input_frame, text="Search PNR", command=self.getdetailsfrompnr)
         self.execute_button.grid(row=1, column=0, columnspan=2, pady=10)
 
+        # Create a frame to hold the output widget
+        self.output_frame = Frame(self.master)
+        self.output_frame.pack(side=RIGHT, padx=10, pady=10)
+
+        # # Create a label for the output widget
+        # self.train_list_label = Label(self.output_frame, text="Results:", font=("Helvetica", 20))
+        # self.train_list_label.pack()
+
+        self.reserve_button = Button(self.input_frame, text="Go Back", command=lambda: (self.input_frame.destroy(),self.output_frame.destroy(),self.main_page()))
+        self.reserve_button.grid(row=2, column=0, columnspan=2, pady=10)
+
     def getdetailsfrompnr(self):
         # Construct the query string
-        query = f"SELECT * FROM pass_tkt WHERE pnr_no={self.pnr_entry.get()};"
-
-        # Execute the query and fetch the results
-        results = db.execute_dql_commands(query)
+        query = f'SELECT pnr_no,train_no,coach_no,seat_no,"isConfirmed",name FROM pass_tkt NATURAL JOIN passenger WHERE pnr_no={self.pnr_entry.get()};'
+        print(query)
+        results=db.execute_dql_commands(query)
 
         # Create a Treeview widget for the output
-        self.tv = ttk.Treeview(self.master, columns=range(len(results[0])), show='headings', height=5)
-        self.tv.pack(side=RIGHT, padx=10, pady=10)
+        self.train_treeview = ttk.Treeview(self.output_frame, columns=(0, 1, 2, 3, 4,5), show='headings', height=15)
+        self.train_treeview.pack(fill='both', expand=True)
 
-        # Configure the column headings
-        for i, col in enumerate(results[0]):
-            self.tv.heading(i, text=col)
+        # Configure the column headings and widths
+        self.train_treeview.heading(0, text='PNR NO')
+        self.train_treeview.column(0, width=100)
+        self.train_treeview.heading(1, text='Train No')
+        self.train_treeview.column(1, width=150)
+        self.train_treeview.heading(2, text='Coach No')
+        self.train_treeview.column(2, width=150)
+        self.train_treeview.heading(3, text='Seat No')
+        self.train_treeview.column(3, width=125)
+        self.train_treeview.heading(4, text='Confirm Status')
+        self.train_treeview.column(4, width=150)
+        self.train_treeview.heading(5, text='Passenger Name')
+        self.train_treeview.column(5, width=175)
 
-        # Insert the data into the Treeview widget
+        for record in self.train_treeview.get_children():
+            self.train_treeview.delete(record)
+
+        # Insert the row into the Treeview widget
+        # for row in results:
+        #     for x in row:
+        #         # x=str(row)
+        #         print(x)
+        #         self.train_treeview.insert("", "end", values=(x,))
         for row in results:
-            self.tv.insert("", "end", values=row)
-
-        # # Disable the input widgets and execute button
+            self.train_treeview.insert("", "end", values=row)
+        # Disable the input widgets and execute button
         # self.pnr_entry.config(state="disabled")
         # self.execute_button.config(state="disabled")
 
