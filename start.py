@@ -142,6 +142,47 @@ class RailwayManagementSystemGUI:
             btn_login.config(state="disabled")
             btn_signup.config(state="disabled")
 
+    def pnrenquiry(self):
+        # Clear the main menu frame
+        self.main_menu_frame.destroy()
+
+        # Create a frame to hold the input widgets
+        self.input_frame = Frame(self.master)
+        self.input_frame.pack(side=LEFT, padx=10, pady=10)
+
+        # Create labels and entry boxes for the source and destination stations
+        self.pnr_label = Label(self.input_frame, text="PNR:")
+        self.pnr_label.grid(row=0, column=0)
+        self.pnr_entry = Entry(self.input_frame)
+        self.pnr_entry.grid(row=0, column=1)
+
+        # Create a button to execute the query
+        self.execute_button = Button(self.input_frame, text="Search PNR", command=self.getdetailsfrompnr)
+        self.execute_button.grid(row=1, column=0, columnspan=2, pady=10)
+
+    def getdetailsfrompnr(self):
+        # Construct the query string
+        query = f"SELECT * FROM pass_tkt WHERE pnr_no={self.pnr_entry.get()};"
+
+        # Execute the query and fetch the results
+        results = db.execute_dql_commands(query)
+
+        # Create a Treeview widget for the output
+        self.tv = ttk.Treeview(self.master, columns=range(len(results[0])), show='headings', height=5)
+        self.tv.pack(side=RIGHT, padx=10, pady=10)
+
+        # Configure the column headings
+        for i, col in enumerate(results[0]):
+            self.tv.heading(i, text=col)
+
+        # Insert the data into the Treeview widget
+        for row in results:
+            self.tv.insert("", "end", values=row)
+
+        # # Disable the input widgets and execute button
+        # self.pnr_entry.config(state="disabled")
+        # self.execute_button.config(state="disabled")
+
     def station_btw(self):
         # Clear the main menu frame
         self.main_menu_frame.destroy()
